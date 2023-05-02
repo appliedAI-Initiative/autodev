@@ -1,0 +1,33 @@
+[tool.poetry]
+authors = ["Mischa Panchenko <m.panchenko@appliedai.de>"]
+description = "A tool for accelerating software development with LLMs"
+name = "autodev"
+version = "0.1.0"
+readme = "README.md"
+packages = [{ include = "autodev", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+langchain = "0.0.152"
+jsonargparse = "~4.21.0"
+# TODO: chroma is a heavy dependency, we should consider removing it or a least make it optional
+#  On windows, it required installing many GB of Visual C++ stuff
+chromadb = "~0.3.21"
+
+
+[tool.poetry.dev-dependencies]
+pre-commit = "~3.1.1"
+pytest = "~7.2.2"
+
+# Black-compatible settings for isort
+# See https://black.readthedocs.io/en/stable/compatible_configs.html
+[tool.isort]
+profile = "black"
+
+[tool.pytest]
+addopts = "--doctest-modules --doctest-report ndiff"
+doctest_optionflags = "NORMALIZE_WHITESPACE ELLIPSIS"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
