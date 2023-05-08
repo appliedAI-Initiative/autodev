@@ -159,3 +159,6 @@ cython_debug/
 # db and cache
 *_db
 *_cache
+
+# temp scripts
+/temp*.py

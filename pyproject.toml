@@ -13,6 +13,8 @@ jsonargparse = "~4.21.0"
 # TODO: chroma is a heavy dependency, we should consider removing it or a least make it optional
 #  On windows, it required installing many GB of Visual C++ stuff
 chromadb = "~0.3.21"
+openai = "^0.27.6"
+flask = "^2.3.2"
 
 
 [tool.poetry.dev-dependencies]
