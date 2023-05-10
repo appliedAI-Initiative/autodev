@@ -30,15 +30,14 @@
 
   <actions>
     <action id="de.appliedai.autodev.mainAction" class="de.appliedai.autodev.SwapAction" text="Swap"
-            icon="/icon.png"
+            icon="/autodev/icon.png"
             description="Copies the selected text/code before pasting">
       <!--<keyboard-shortcut keymap="$default" first-keystroke="alt S"/>-->
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
     </action>
     <action id="de.appliedai.autodev.addCommentsAction" class="de.appliedai.autodev.AddCommentsAction" text="Add comments"
-            icon="/icon.png"
+            icon="/autodev/icon.png"
             description="Adds comments to the selected code">
-      <!--<keyboard-shortcut keymap="$default" first-keystroke="alt S"/>-->
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
     </action>
   </actions>
