@@ -162,3 +162,7 @@ cython_debug/
 
 # temp scripts
 /temp*.py
+
+# data folders
+/data
+/vectordb
