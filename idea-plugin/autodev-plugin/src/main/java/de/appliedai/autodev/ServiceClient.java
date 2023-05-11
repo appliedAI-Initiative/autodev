@@ -70,4 +70,10 @@ public class ServiceClient {
         data.put("code", code);
         return post(URI.create(serviceUrl + "fn/add-comments"), data);
     }
+
+    public String checkForPotentialProblems(String code) throws IOException, InterruptedException {
+        HashMap<Object, Object> data = new HashMap<>();
+        data.put("code", code);
+        return post(URI.create(serviceUrl + "fn/potential-problems"), data);
+    }
 }

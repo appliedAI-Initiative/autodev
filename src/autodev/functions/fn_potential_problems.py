@@ -3,10 +3,10 @@ from langchain.llms import BaseLLM
 from autodev.llm import TextInTextOut
 
 
-class AddDocstringsFunction:
-    PROMPT_TEMPLATE = "Please add docstrings to this piece of code:\n\n" \
-        "{code}\n\n" \
-        "Commented code:"
+class PotentialProblemsFunction:
+    PROMPT_TEMPLATE = "What are potential problems in this piece of code?\n\n" \
+                      "{code}\n\n" \
+                      "Potential problems:"
 
     def __init__(self, llm: BaseLLM):
         self.tito = TextInTextOut(llm)

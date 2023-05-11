@@ -43,7 +43,7 @@ public class AutoDevToolWindowManager {
             contentPanel.setBorder(BorderFactory.createEmptyBorder(border, border, border, border));
             JEditorPane editorPane = new JEditorPane();
             editorPane.setContentType("text/html");
-            editorPane.setText("<span style=\"font-family: monospace;\">" + content + "</span>");
+            editorPane.setText("<pre>" + content + "</pre>");
             contentPanel.add(editorPane);
         }
 
