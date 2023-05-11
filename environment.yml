@@ -1,0 +1,17 @@
+name: autodev
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pytorch=2.0.1
+  - pytorch-cuda=11.7
+  - pip
+  - pip:
+    - langchain==0.0.163
+    - tiktoken==0.4.0
+    - flask==2.3.2
+    - chromadb==0.3.21
+    - transformers==4.28.1
