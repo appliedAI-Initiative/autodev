@@ -23,10 +23,10 @@ public class AutoDevToolWindowManager {
         return toolWindow;
     }
 
-    public static void addContent(String s, Project project, String tabName) {
+    public static void addContent(String s, Project project, String tabName, boolean isHtml) {
         ToolWindow toolWindow = getOrCreateToolWindow(project);
-        ToolWindowContent toolWindowContent = new ToolWindowContent(s);
-        Content content = ContentFactory.getInstance().createContent(toolWindowContent.getContentPanel(), "", false);
+        ToolWindowContent toolWindowContent = new ToolWindowContent(s, isHtml);
+        Content content = ContentFactory.getInstance().createContent(toolWindowContent.getContentPanel(), tabName, false);
         if (tabName != null) {
             content.setTabName(tabName);
         }
@@ -37,13 +37,15 @@ public class AutoDevToolWindowManager {
     private static class ToolWindowContent {
         private final JPanel contentPanel = new JPanel();
 
-        public ToolWindowContent(String content) {
+        public ToolWindowContent(String content, boolean isHtml) {
             contentPanel.setLayout(new BorderLayout(0, 20));
             final int border = 5;
             contentPanel.setBorder(BorderFactory.createEmptyBorder(border, border, border, border));
             JEditorPane editorPane = new JEditorPane();
-            editorPane.setContentType("text/html");
-            editorPane.setText("<pre>" + content + "</pre>");
+            if (isHtml) {
+                editorPane.setContentType("text/html");
+            }
+            editorPane.setText(content);
             contentPanel.add(editorPane);
         }
 

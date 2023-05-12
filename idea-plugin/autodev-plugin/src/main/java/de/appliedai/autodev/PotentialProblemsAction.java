@@ -1,9 +1,6 @@
 package de.appliedai.autodev;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.ui.Messages;
 
 public class PotentialProblemsAction extends EditorAction {
@@ -15,7 +12,9 @@ public class PotentialProblemsAction extends EditorAction {
 
         try {
             String result = client.checkForPotentialProblems(selectedText);
-            AutoDevToolWindowManager.addContent("Here's what I found:\n" + result, e.getProject(), "Problems found");
+            boolean isHtml = true;
+            AutoDevToolWindowManager.addContent(result, e.getProject(),
+                    "Problems found", isHtml);
         }
         catch (Throwable t) {
             Messages.showInfoMessage(e.getProject(), e.toString(), "AutoCode Error");
