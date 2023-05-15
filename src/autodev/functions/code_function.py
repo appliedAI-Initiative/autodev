@@ -41,7 +41,7 @@ class ImplementTestsFunction(CodeFunction):
         "Test code:"
 
     def apply(self, code: str) -> str:
-        return self.tito.query(self.PROMPT_TEMPLATE.format(code=code))
+        return "<pre>" + self.tito.query(self.PROMPT_TEMPLATE.format(code=code)) + "</pre>"
 
 
 class ImproveCodeFunction(CodeFunction):
