@@ -34,12 +34,12 @@
       <!--<keyboard-shortcut keymap="$default" first-keystroke="alt S"/>-->
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
     </action>
-    <action id="de.appliedai.autodev.addDocstringsAction" class="de.appliedai.autodev.AddDocstringsAction" text="Add Docstrings"
+    <action id="de.appliedai.autodev.addDocstringsAction" class="de.appliedai.autodev.actions.AddDocstringsAction" text="Add Docstrings"
             icon="/autodev/icon.png"
             description="Adds comments to the selected code">
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
     </action>
-    <action id="de.appliedai.autodev.potentialProblemsAction" class="de.appliedai.autodev.PotentialProblemsAction" text="Identify Potential Problems"
+    <action id="de.appliedai.autodev.potentialProblemsAction" class="de.appliedai.autodev.actions.PotentialProblemsAction" text="Identify Potential Problems"
             icon="/autodev/icon.png"
             description="Checks the selected code for potential problems">
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>

@@ -2,18 +2,12 @@ import re
 
 from flask import Flask, request
 
-from autodev.functions.fn_add_comments import AddDocstringsFunction
-from autodev.functions.fn_potential_problems import PotentialProblemsFunction
+from autodev.functions.code_function import CodeFunction, ReviewFunction, ImproveCodeFunction, ExplainCodeFunction, \
+    ImplementTestsFunction, AddDocstringsFunction, PotentialProblemsFunction
 from autodev.llm import LLMType
 
-app = Flask(__name__)
-llm = LLMType.OPENAI_CHAT_GPT4.create_llm()
 
-fn_add_comments = AddDocstringsFunction(llm)
-fn_potential_problems = PotentialProblemsFunction(llm)
-
-
-def issue_code_request(fn):
+def issue_code_request(fn: CodeFunction):
     print(request)
     print(request.form)
     code = request.form.get("code")
@@ -47,16 +41,24 @@ def format_html(response: str) -> str:
     return s
 
 
-@app.route('/fn/add-comments', methods=['POST'])
-def add_comments():
-    return issue_code_request(fn_add_comments)
+def add_code_function(path, fn: CodeFunction, html=False):
+    def handle():
+        response = issue_code_request(fn)
+        if html:
+            response = format_html(response)
+        return response
+    handle.__name__ = fn.__class__.__name__
 
-
-@app.route('/fn/potential-problems', methods=['POST'])
-def potential_problems():
-    response = issue_code_request(fn_potential_problems)
-    return format_html(response)
+    app.add_url_rule(path, None, handle, methods=["POST"])
 
 
 if __name__ == '__main__':
+    app = Flask(__name__)
+    llm = LLMType.OPENAI_CHAT_GPT4.create_llm()
+    add_code_function("/fn/add-comments", AddDocstringsFunction(llm))
+    add_code_function("/fn/potential-problems", PotentialProblemsFunction(llm), html=True)
+    add_code_function("/fn/review", ReviewFunction(llm), html=True)
+    add_code_function("/fn/improve-code", ImproveCodeFunction(llm))
+    add_code_function("/fn/explain", ExplainCodeFunction(llm), html=True)
+    add_code_function("/fn/implement-tests", ImplementTestsFunction(llm))
     app.run()

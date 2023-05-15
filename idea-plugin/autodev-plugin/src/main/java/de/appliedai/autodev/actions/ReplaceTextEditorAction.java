@@ -1,4 +1,4 @@
-package de.appliedai.autodev;
+package de.appliedai.autodev.actions;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -6,9 +6,9 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.ui.Messages;
 
-public class AddDocstringsAction extends EditorAction {
-    private ServiceClient client = new ServiceClient();
+import java.io.IOException;
 
+public abstract class ReplaceTextEditorAction extends EditorAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         Editor editor = getEditor(e);
@@ -18,7 +18,7 @@ public class AddDocstringsAction extends EditorAction {
 
         String pasteText;
         try {
-            pasteText = client.addComments(selectedText);
+            pasteText = this.obtainReplacementText(selectedText);
         }
         catch (Throwable t) {
             Messages.showInfoMessage(e.getProject(), e.toString(), "AutoCode Error");
@@ -36,4 +36,6 @@ public class AddDocstringsAction extends EditorAction {
             }
         }.execute();
     }
+
+    public abstract String obtainReplacementText(String inputText) throws IOException, InterruptedException;
 }
