@@ -11,7 +11,7 @@ public abstract class GenerateHtmlResponseEditorAction extends EditorAction {
     public void actionPerformed(AnActionEvent e) {
         String selectedText = this.getSelectedText(e);
         try {
-            String result = client.checkForPotentialProblems(selectedText);
+            String result = this.generateResponse(selectedText);
             boolean isHtml = true;
             AutoDevToolWindowManager.addContent(result, e.getProject(),
                     "Response", isHtml);
