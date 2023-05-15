@@ -31,17 +31,37 @@
     <action id="de.appliedai.autodev.mainAction" class="de.appliedai.autodev.SwapAction" text="Swap"
             icon="/autodev/icon.png"
             description="Copies the selected text/code before pasting">
-      <!--<keyboard-shortcut keymap="$default" first-keystroke="alt S"/>-->
+        <!--<keyboard-shortcut keymap="$default" first-keystroke="alt S"/>-->
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
     </action>
     <action id="de.appliedai.autodev.addDocstringsAction" class="de.appliedai.autodev.actions.AddDocstringsAction" text="Add Docstrings"
             icon="/autodev/icon.png"
-            description="Adds comments to the selected code">
+            description="Adds docstrings to the selected code">
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
     </action>
     <action id="de.appliedai.autodev.potentialProblemsAction" class="de.appliedai.autodev.actions.PotentialProblemsAction" text="Identify Potential Problems"
             icon="/autodev/icon.png"
             description="Checks the selected code for potential problems">
+      <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
+    </action>
+    <action id="de.appliedai.autodev.reviewCodeAction" class="de.appliedai.autodev.actions.ReviewCodeAction" text="Code Review"
+            icon="/autodev/icon.png"
+            description="Generates a code review for the selected piece of code">
+      <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
+    </action>
+    <action id="de.appliedai.autodev.explainCodeAction" class="de.appliedai.autodev.actions.ExplainCodeAction" text="Explain"
+            icon="/autodev/icon.png"
+            description="Explains the selected piece of code">
+      <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
+    </action>
+    <action id="de.appliedai.autodev.implementTestsAction" class="de.appliedai.autodev.actions.ImplementTestsAction" text="Implement Tests"
+            icon="/autodev/icon.png"
+            description="Implements tests for the selected piece of code">
+      <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
+    </action>
+    <action id="de.appliedai.autodev.improveCodeAction" class="de.appliedai.autodev.actions.ImproveCodeAction" text="Improve Code"
+            icon="/autodev/icon.png"
+            description="Attempts to replaces the selected code with an improved version, comments indicating the improvements">
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
     </action>
   </actions>

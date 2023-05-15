@@ -66,14 +66,16 @@ public class ServiceClient {
     }
 
     public String addComments(String code) throws IOException, InterruptedException {
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("code", code);
-        return post(URI.create(serviceUrl + "fn/add-comments"), data);
+        return callCodeFunction("add-comments", code);
     }
 
     public String checkForPotentialProblems(String code) throws IOException, InterruptedException {
+        return callCodeFunction("potential-problems", code);
+    }
+
+    public String callCodeFunction(String fn, String code) throws IOException, InterruptedException {
         HashMap<Object, Object> data = new HashMap<>();
         data.put("code", code);
-        return post(URI.create(serviceUrl + "fn/potential-problems"), data);
+        return post(URI.create(serviceUrl + "fn/" + fn), data);
     }
 }
