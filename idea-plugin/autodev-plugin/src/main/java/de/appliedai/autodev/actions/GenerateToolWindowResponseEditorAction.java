@@ -6,18 +6,19 @@ import de.appliedai.autodev.AutoDevToolWindowManager;
 
 import java.io.IOException;
 
-public abstract class GenerateHtmlResponseEditorAction extends EditorAction {
+public abstract class GenerateToolWindowResponseEditorAction extends EditorAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         String selectedText = this.getSelectedText(e);
         try {
             String result = this.generateResponse(selectedText);
             boolean isHtml = true;
-            AutoDevToolWindowManager.addContent(result, e.getProject(),
+            AutoDevToolWindowManager.addTab(result, e.getProject(),
                     "Response", isHtml);
         }
         catch (Throwable t) {
-            Messages.showInfoMessage(e.getProject(), e.toString(), "AutoCode Error");
+            t.printStackTrace();
+            Messages.showInfoMessage(e.getProject(), t.toString(), "AutoDev Error");
         }
     }
 

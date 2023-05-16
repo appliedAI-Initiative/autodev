@@ -9,7 +9,9 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
 import java.awt.*;
+import java.io.*;
 
 public class AutoDevToolWindowManager {
     private static final String toolWindowId = "AutoDev";
@@ -23,7 +25,7 @@ public class AutoDevToolWindowManager {
         return toolWindow;
     }
 
-    public static void addContent(String s, Project project, String tabName, boolean isHtml) {
+    public static ToolWindowContent addTab(String s, Project project, String tabName, boolean isHtml) {
         ToolWindow toolWindow = getOrCreateToolWindow(project);
         ToolWindowContent toolWindowContent = new ToolWindowContent(s, isHtml);
         Content content = ContentFactory.getInstance().createContent(toolWindowContent.getContentPanel(), tabName, false);
@@ -31,19 +33,48 @@ public class AutoDevToolWindowManager {
             content.setTabName(tabName);
         }
         toolWindow.getContentManager().addContent(content);
+        toolWindow.getContentManager().setSelectedContent(content);
         toolWindow.show();
+        return toolWindowContent;
+    }
+
+    public static void addTabStreamed(PipedInputStream is, Project project, String tabName, boolean isHtml) throws IOException {
+        ToolWindowContent toolWindowContent = addTab("", project, tabName, false);
+
+        new Thread(() -> {
+            try(is) {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    try {
+                        toolWindowContent.append(line + "\n");
+                    }
+                    catch (BadLocationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private static class ToolWindowContent {
         private final JPanel contentPanel = new JPanel();
+        private final JEditorPane editorPane;
 
         public ToolWindowContent(String content, boolean isHtml) {
             contentPanel.setLayout(new BorderLayout(0, 20));
             final int border = 5;
             contentPanel.setBorder(BorderFactory.createEmptyBorder(border, border, border, border));
-            JEditorPane editorPane = new JEditorPane();
+            editorPane = new JEditorPane();
             if (isHtml) {
                 editorPane.setContentType("text/html");
+            }
+            else {
+                Font font = new Font("Consolas", Font.PLAIN, 13);
+                editorPane.setFont(font);
             }
             editorPane.setText(content);
             contentPanel.add(editorPane);
@@ -51,6 +82,11 @@ public class AutoDevToolWindowManager {
 
         public JPanel getContentPanel() {
             return contentPanel;
+        }
+
+        public void append(String content) throws BadLocationException {
+            var document = editorPane.getDocument();
+            document.insertString(document.getLength(), content, null);
         }
     }
 }

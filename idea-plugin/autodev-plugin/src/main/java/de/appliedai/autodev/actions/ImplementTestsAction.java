@@ -1,10 +1,11 @@
 package de.appliedai.autodev.actions;
 
 import java.io.IOException;
+import java.io.PipedInputStream;
 
-public class ImplementTestsAction extends GenerateHtmlResponseEditorAction {
+public class ImplementTestsAction extends GenerateToolWindowResponseEditorActionStreamed {
     @Override
-    protected String generateResponse(String code) throws IOException, InterruptedException {
-        return client.callCodeFunction("implement-tests", code);
+    protected PipedInputStream generateResponse(String code) throws IOException {
+        return client.callCodeFunctionStreamed("implement-tests", code);
     }
 }

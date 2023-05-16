@@ -41,7 +41,7 @@ public class TestService {
                 "\t\tdef run_example_queries(self):\n" +
                 "\t\t\tfor q in self.queries:\n" +
                 "\t\t\t\tself.query(q)\n";
-        String result = client.addComments(code);
+        String result = client.callCodeFunction("add-comments", code);
         System.out.println(result);
     }
 }

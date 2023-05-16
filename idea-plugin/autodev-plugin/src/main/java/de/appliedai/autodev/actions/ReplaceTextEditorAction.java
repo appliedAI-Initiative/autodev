@@ -5,12 +5,13 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.ui.Messages;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public abstract class ReplaceTextEditorAction extends EditorAction {
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
         Editor editor = getEditor(e);
         if (editor == null)
             return;
@@ -21,7 +22,8 @@ public abstract class ReplaceTextEditorAction extends EditorAction {
             pasteText = this.obtainReplacementText(selectedText);
         }
         catch (Throwable t) {
-            Messages.showInfoMessage(e.getProject(), e.toString(), "AutoCode Error");
+            t.printStackTrace();
+            Messages.showInfoMessage(e.getProject(), t.toString(), "AutoDev Error");
             return;
         }
 
