@@ -1,4 +1,5 @@
 import re
+import sys
 
 from flask import Flask, request
 
@@ -10,13 +11,17 @@ from autodev.llm import LLMType
 class Service:
     def __init__(self, llm_type: LLMType):
         self.app = Flask("AutoDev")
-        self.llm = llm = llm_type.create_llm()
+        self.llm = llm = llm_type.create_streaming_llm()
         self._add_code_function("/fn/add-comments", AddDocstringsFunction(llm))
         self._add_code_function("/fn/potential-problems", PotentialProblemsFunction(llm), html=True)
         self._add_code_function("/fn/review", ReviewFunction(llm), html=True)
         self._add_code_function("/fn/improve-code", ImproveCodeFunction(llm))
         self._add_code_function("/fn/explain", ExplainCodeFunction(llm), html=True)
         self._add_code_function("/fn/implement-tests", ImplementTestsFunction(llm))
+        self._add_streaming_code_function("/fn/stream/potential-problems", PotentialProblemsFunction(llm))
+        self._add_streaming_code_function("/fn/stream/review", ReviewFunction(llm))
+        self._add_streaming_code_function("/fn/stream/explain", ExplainCodeFunction(llm))
+        self._add_streaming_code_function("/fn/stream/implement-tests", ImplementTestsFunction(llm))
 
     @staticmethod
     def _issue_code_request(fn: CodeFunction):
@@ -58,9 +63,25 @@ class Service:
             if html:
                 response = self._format_html(response)
             return response
-        handle.__name__ = fn.__class__.__name__
 
+        handle.__name__ = fn.__class__.__name__
         self.app.add_url_rule(path, None, handle, methods=["POST"])
+
+    def _add_streaming_code_function(self, path, fn: CodeFunction):
+        def handle():
+            print(request)
+            print(request.form)
+            code = request.form.get("code")
+
+            def generate():
+                for token in fn.apply_streaming(code):
+                    sys.stdout.write(token)
+                    yield token
+
+            return self.app.response_class(generate(), mimetype="text/plain")
+
+        handle.__name__ = "stream_" + fn.__class__.__name__
+        return self.app.add_url_rule(path, None, handle, methods=["POST"])
 
     def run(self):
         self.app.run()

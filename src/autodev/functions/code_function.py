@@ -3,19 +3,29 @@ LLM functions that take code as input and return text/code.
 """
 
 from abc import ABC, abstractmethod
+from typing import Iterator
 
 from langchain.llms import BaseLLM
 
-from autodev.llm import TextInTextOut
+from autodev.llm import TextInTextOut, TextInIteratorOut
 
 
 class CodeFunction(ABC):
     def __init__(self, llm: BaseLLM):
         self.tito = TextInTextOut(llm)
+        self.tiio = TextInIteratorOut(llm)
 
     @abstractmethod
-    def apply(self, code: str) -> str:
+    def generate_prompt(self, code: str) -> str:
         pass
+
+    def apply(self, code: str) -> str:
+        prompt = self.generate_prompt(code)
+        return self.tito.query(prompt)
+
+    def apply_streaming(self, code: str) -> Iterator[str]:
+        prompt = self.generate_prompt(code)
+        yield from self.tiio.query(prompt)
 
 
 class AddDocstringsFunction(CodeFunction):
@@ -23,16 +33,16 @@ class AddDocstringsFunction(CodeFunction):
         "{code}\n\n" \
         "Commented code:"
 
-    def apply(self, code: str) -> str:
-        return self.tito.query(self.PROMPT_TEMPLATE.format(code=code))
+    def generate_prompt(self, code: str) -> str:
+        return self.PROMPT_TEMPLATE.format(code=code)
 
 
 class ExplainCodeFunction(CodeFunction):
     PROMPT_TEMPLATE = "Please describe what this piece of code does:\n\n" \
         "{code}"
 
-    def apply(self, code: str) -> str:
-        return self.tito.query(self.PROMPT_TEMPLATE.format(code=code))
+    def generate_prompt(self, code: str) -> str:
+        return self.PROMPT_TEMPLATE.format(code=code)
 
 
 class ImplementTestsFunction(CodeFunction):
@@ -40,8 +50,8 @@ class ImplementTestsFunction(CodeFunction):
         "{code}\n\n" \
         "Test code:"
 
-    def apply(self, code: str) -> str:
-        return "<pre>" + self.tito.query(self.PROMPT_TEMPLATE.format(code=code)) + "</pre>"
+    def generate_prompt(self, code: str) -> str:
+        return self.PROMPT_TEMPLATE.format(code=code)
 
 
 class ImproveCodeFunction(CodeFunction):
@@ -50,8 +60,8 @@ class ImproveCodeFunction(CodeFunction):
         "{code}\n\n" \
         "Improved code:"
 
-    def apply(self, code: str) -> str:
-        return self.tito.query(self.PROMPT_TEMPLATE.format(code=code))
+    def generate_prompt(self, code: str) -> str:
+        return self.PROMPT_TEMPLATE.format(code=code)
 
 
 class PotentialProblemsFunction(CodeFunction):
@@ -59,12 +69,12 @@ class PotentialProblemsFunction(CodeFunction):
         "{code}\n\n" \
         "Potential problems:"
 
-    def apply(self, code: str) -> str:
-        return self.tito.query(self.PROMPT_TEMPLATE.format(code=code))
+    def generate_prompt(self, code: str) -> str:
+        return self.PROMPT_TEMPLATE.format(code=code)
 
 
 class ReviewFunction(CodeFunction):
     PROMPT_TEMPLATE = "Please review this piece of code:\n\n{code}"
 
-    def apply(self, code: str) -> str:
-        return self.tito.query(self.PROMPT_TEMPLATE.format(code=code))
+    def generate_prompt(self, code: str) -> str:
+        return self.PROMPT_TEMPLATE.format(code=code)
