@@ -162,6 +162,7 @@ cython_debug/
 
 # temp scripts
 /temp*.py
+/temp
 
 # data folders
 /data
