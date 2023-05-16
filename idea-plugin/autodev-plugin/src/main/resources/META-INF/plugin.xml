@@ -28,7 +28,7 @@
   </extensions>
 
   <actions>
-    <action id="de.appliedai.autodev.mainAction" class="de.appliedai.autodev.SwapAction" text="Swap"
+    <action id="de.appliedai.autodev.mainAction" class="de.appliedai.autodev.actions.SwapAction" text="Swap"
             icon="/autodev/icon.png"
             description="Copies the selected text/code before pasting">
         <!--<keyboard-shortcut keymap="$default" first-keystroke="alt S"/>-->
@@ -44,7 +44,7 @@
             description="Checks the selected code for potential problems">
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
     </action>
-    <action id="de.appliedai.autodev.reviewCodeAction" class="de.appliedai.autodev.actions.ReviewCodeAction" text="Code Review"
+    <action id="de.appliedai.autodev.reviewCodeAction" class="de.appliedai.autodev.actions.ReviewCodeAction" text="Review"
             icon="/autodev/icon.png"
             description="Generates a code review for the selected piece of code">
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>

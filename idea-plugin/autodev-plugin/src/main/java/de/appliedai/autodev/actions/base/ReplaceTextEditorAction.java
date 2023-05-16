@@ -1,10 +1,11 @@
-package de.appliedai.autodev.actions;
+package de.appliedai.autodev.actions.base;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.ui.Messages;
+import de.appliedai.autodev.actions.base.EditorAction;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

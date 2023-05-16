@@ -1,5 +1,7 @@
 package de.appliedai.autodev.actions;
 
+import de.appliedai.autodev.actions.base.GenerateToolWindowResponseEditorActionStreamed;
+
 import java.io.IOException;
 import java.io.PipedInputStream;
 

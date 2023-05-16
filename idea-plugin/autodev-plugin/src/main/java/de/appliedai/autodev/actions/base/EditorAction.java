@@ -1,4 +1,4 @@
-package de.appliedai.autodev.actions;
+package de.appliedai.autodev.actions.base;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
