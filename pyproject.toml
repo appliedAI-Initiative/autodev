@@ -8,7 +8,7 @@ packages = [{ include = "autodev", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "~3.10"
-langchain = "0.0.152"
+langchain = "0.0.171"
 jsonargparse = "~4.21.0"
 # TODO: chroma is a heavy dependency, we should consider removing it or a least make it optional
 #  On windows, it required installing many GB of Visual C++ stuff
