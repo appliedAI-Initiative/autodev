@@ -1,32 +1,38 @@
+import queue
+import threading
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Literal
+from typing import Literal, Dict, Any, List, Union, Callable, Iterator
 
 from langchain import OpenAI, HuggingFacePipeline
+from langchain.callbacks.base import BaseCallbackHandler
 from langchain.llms import OpenAIChat, BaseLLM
-from langchain.schema import LLMResult
+from langchain.schema import LLMResult, AgentFinish, AgentAction
 
 
 class LLMFactory(ABC):
     @abstractmethod
-    def create_llm(self) -> BaseLLM:
+    def create_llm(self, **kwargs) -> BaseLLM:
         pass
+
+    def create_streaming_llm(self) -> BaseLLM:
+        return self.create_llm(streaming=True)
 
 
 class LLMFactoryOpenAICompletions(LLMFactory):
     def __init__(self, model_name: Literal["text-davinci-003", "text-davinci-002", "text-curie-001", "text-babbage-001", "text-ada-001"] = "text-davinci-003"):
         self.model_name = model_name
 
-    def create_llm(self) -> OpenAI:
-        return OpenAI(model_name=self.model_name)
+    def create_llm(self, **kwargs) -> OpenAI:
+        return OpenAI(model_name=self.model_name, **kwargs)
 
 
 class LLMFactoryOpenAIChat(LLMFactory):
     def __init__(self, model_name: Literal["gpt-4", "gpt-4-0314", "gpt-4-32k", "gpt-4-32k-0314", "gpt-3.5-turbo", "gpt-3.5-turbo-0301"] = "gpt-4"):
         self.model_name = model_name
 
-    def create_llm(self) -> OpenAIChat:
-        return OpenAIChat(model_name=self.model_name)
+    def create_llm(self, **kwargs) -> OpenAIChat:
+        return OpenAIChat(model_name=self.model_name, **kwargs)
 
 
 class LLMFactoryHuggingFace(LLMFactory):
@@ -56,6 +62,54 @@ class LLMFactoryHuggingFaceDolly7B(LLMFactoryHuggingFace):
         super().__init__("databricks/dolly-v2-7b")
 
 
+class TokenReaderCallback(BaseCallbackHandler):
+    def __init__(self, on_token: Callable[[str | None], None]):
+        """
+        :param on_token: function to call whenever a new token is received; None is passed if the end of the response is
+            reached
+        """
+        self.on_token = on_token
+
+    def on_llm_new_token(self, token: str, **kwargs: Any) -> Any:
+        self.on_token(token)
+
+    def on_llm_end(self, response: LLMResult, **kwargs: Any) -> Any:
+        self.on_token(None)
+
+    def on_llm_error(self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any) -> Any:
+        pass
+
+    def on_chain_start(self, serialized: Dict[str, Any], inputs: Dict[str, Any], **kwargs: Any) -> Any:
+        pass
+
+    def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> Any:
+        pass
+
+    def on_chain_error(self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any) -> Any:
+        pass
+
+    def on_tool_start(self, serialized: Dict[str, Any], input_str: str, **kwargs: Any) -> Any:
+        pass
+
+    def on_tool_end(self, output: str, **kwargs: Any) -> Any:
+        pass
+
+    def on_tool_error(self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any) -> Any:
+        pass
+
+    def on_text(self, text: str, **kwargs: Any) -> Any:
+        pass
+
+    def on_agent_action(self, action: AgentAction, **kwargs: Any) -> Any:
+        pass
+
+    def on_agent_finish(self, finish: AgentFinish, **kwargs: Any) -> Any:
+        pass
+
+    def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any) -> Any:
+        pass
+
+
 class LLMType(Enum):
     OPENAI_DAVINCI3 = LLMFactoryOpenAICompletions
     OPENAI_CHAT_GPT4 = LLMFactoryOpenAIChat
@@ -68,6 +122,9 @@ class LLMType(Enum):
 
     def create_llm(self) -> BaseLLM:
         return self.create_factory().create_llm()
+
+    def create_streaming_llm(self) -> BaseLLM:
+        return self.create_factory().create_streaming_llm()
 
     def chunk_size(self):
         if self in (self.OPENAI_DAVINCI3, self.OPENAI_CHAT_GPT4):
@@ -85,3 +142,29 @@ class TextInTextOut:
     def query(self, prompt: str) -> str:
         result: LLMResult = self.llm.generate([prompt])
         return result.generations[0][0].text
+
+
+class TextInIteratorOut:
+    def __init__(self, llm: BaseLLM):
+        self.llm = llm
+
+    class ReaderThread(threading.Thread):
+        def __init__(self, llm: BaseLLM, prompt: str, q: queue.Queue):
+            super().__init__()
+            self.llm = llm
+            self.prompt = prompt
+            self.queue = q
+
+        def run(self):
+            self.llm(self.prompt, callbacks=[TokenReaderCallback(lambda token: self.queue.put(token))])
+
+    def query(self, prompt: str) -> Iterator[str]:
+        q = queue.Queue()
+        thread = self.ReaderThread(self.llm, prompt, q)
+        thread.start()
+
+        while True:
+            token = q.get()
+            if token is None:
+                break
+            yield token
