@@ -44,14 +44,10 @@ public class AutoDevToolWindowManager {
         new Thread(() -> {
             try(is) {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    try {
-                        toolWindowContent.append(line + "\n");
-                    }
-                    catch (BadLocationException e) {
-                        throw new RuntimeException(e);
-                    }
+                char[] buf = new char[1];
+                int numCharsRead;
+                while ((numCharsRead = bufferedReader.read(buf)) != -1) {
+                    toolWindowContent.append(String.valueOf(buf));
                 }
             }
             catch (IOException e) {
@@ -84,9 +80,13 @@ public class AutoDevToolWindowManager {
             return contentPanel;
         }
 
-        public void append(String content) throws BadLocationException {
+        public void append(String content) {
             var document = editorPane.getDocument();
-            document.insertString(document.getLength(), content, null);
+            try {
+                document.insertString(document.getLength(), content, null);
+            } catch (BadLocationException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
