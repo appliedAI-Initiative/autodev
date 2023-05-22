@@ -6,6 +6,7 @@ from flask import Flask, request
 from autodev.functions.code_function import CodeFunction, ReviewFunction, ImproveCodeFunction, ExplainCodeFunction, \
     ImplementTestsFunction, AddDocstringsFunction, PotentialProblemsFunction
 from autodev.llm import LLMType
+from autodev.response_stream_formatting import StreamHtmlFormatter
 
 
 class Service:
@@ -18,10 +19,10 @@ class Service:
         self._add_code_function("/fn/improve-code", ImproveCodeFunction(llm))
         self._add_code_function("/fn/explain", ExplainCodeFunction(llm), html=True)
         self._add_code_function("/fn/implement-tests", ImplementTestsFunction(llm))
-        self._add_streaming_code_function("/fn/stream/potential-problems", PotentialProblemsFunction(llm))
-        self._add_streaming_code_function("/fn/stream/review", ReviewFunction(llm))
-        self._add_streaming_code_function("/fn/stream/explain", ExplainCodeFunction(llm))
-        self._add_streaming_code_function("/fn/stream/implement-tests", ImplementTestsFunction(llm))
+        self._add_streaming_code_function("/fn/stream/potential-problems", PotentialProblemsFunction(llm), html=True)
+        self._add_streaming_code_function("/fn/stream/review", ReviewFunction(llm), html=True)
+        self._add_streaming_code_function("/fn/stream/explain", ExplainCodeFunction(llm), html=True)
+        self._add_streaming_code_function("/fn/stream/implement-tests", ImplementTestsFunction(llm), html=False)
 
     @staticmethod
     def _issue_code_request(fn: CodeFunction):
@@ -67,18 +68,33 @@ class Service:
         handle.__name__ = fn.__class__.__name__
         self.app.add_url_rule(path, None, handle, methods=["POST"])
 
-    def _add_streaming_code_function(self, path, fn: CodeFunction):
+    def _add_streaming_code_function(self, path, fn: CodeFunction, html=True):
         def handle():
             print(request)
             print(request.form)
             code = request.form.get("code")
 
-            def generate():
+            def generate_plain():
                 for token in fn.apply_streaming(code):
                     sys.stdout.write(token)
                     yield token
 
-            return self.app.response_class(generate(), mimetype="text/plain")
+            def generate_html():
+                formatter = StreamHtmlFormatter()
+
+                for token in fn.apply_streaming(code):
+                    sys.stdout.write(token)
+                    yield from formatter.append(token)
+
+                yield formatter.flush()
+
+            if html:
+                generate = generate_html
+                mimetype = "text/html"
+            else:
+                generate = generate_plain
+                mimetype = "text/plain"
+            return self.app.response_class(generate(), mimetype=mimetype)
 
         handle.__name__ = "stream_" + fn.__class__.__name__
         return self.app.add_url_rule(path, None, handle, methods=["POST"])
