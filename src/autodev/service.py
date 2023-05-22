@@ -12,7 +12,7 @@ from autodev.response_stream_formatting import StreamHtmlFormatter
 class Service:
     def __init__(self, llm_type: LLMType):
         self.app = Flask("AutoDev")
-        self.llm = llm = llm_type.create_streaming_llm()
+        self.sllm = llm = llm_type.create_streaming_llm()
         self._add_code_function("/fn/add-comments", AddDocstringsFunction(llm))
         self._add_code_function("/fn/potential-problems", PotentialProblemsFunction(llm), html=True)
         self._add_code_function("/fn/review", ReviewFunction(llm), html=True)

@@ -2,21 +2,41 @@ import queue
 import threading
 from abc import ABC, abstractmethod
 from enum import Enum
+from threading import Thread
 from typing import Literal, Dict, Any, List, Union, Callable, Iterator
 
 from langchain import OpenAI, HuggingFacePipeline
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.llms import OpenAIChat, BaseLLM
 from langchain.schema import LLMResult, AgentFinish, AgentAction
+from transformers import Pipeline, pipeline, TextIteratorStreamer, AutoTokenizer, AutoModelForCausalLM
+
+
+class StreamingLLM(ABC):
+    def __init__(self, llm: BaseLLM):
+        self.llm = llm
+
+    def query(self, prompt: str) -> str:
+        result: LLMResult = self.llm.generate([prompt])
+        return result.generations[0][0].text
+
+    @abstractmethod
+    def query_streaming(self, prompt: str) -> Iterator[str]:
+        pass
 
 
 class LLMFactory(ABC):
     @abstractmethod
     def create_llm(self, **kwargs) -> BaseLLM:
+        """
+        :param kwargs: parameters to pass on to langchain class (subclass of BaseLLM)
+        :return: an instance of BaseLLM
+        """
         pass
 
-    def create_streaming_llm(self) -> BaseLLM:
-        return self.create_llm(streaming=True)
+    @abstractmethod
+    def create_streaming_llm(self) -> StreamingLLM:
+        pass
 
 
 class LLMFactoryOpenAICompletions(LLMFactory):
@@ -26,6 +46,10 @@ class LLMFactoryOpenAICompletions(LLMFactory):
     def create_llm(self, **kwargs) -> OpenAI:
         return OpenAI(model_name=self.model_name, **kwargs)
 
+    def create_streaming_llm(self) -> StreamingLLM:
+        llm = self.create_llm(streaming=True)
+        return LangChainStreamingLLM(llm)
+
 
 class LLMFactoryOpenAIChat(LLMFactory):
     def __init__(self, model_name: Literal["gpt-4", "gpt-4-0314", "gpt-4-32k", "gpt-4-32k-0314", "gpt-3.5-turbo", "gpt-3.5-turbo-0301"] = "gpt-4"):
@@ -34,32 +58,54 @@ class LLMFactoryOpenAIChat(LLMFactory):
     def create_llm(self, **kwargs) -> OpenAIChat:
         return OpenAIChat(model_name=self.model_name, **kwargs)
 
+    def create_streaming_llm(self) -> StreamingLLM:
+        llm = self.create_llm(streaming=True)
+        return LangChainStreamingLLM(llm)
+
 
 class LLMFactoryHuggingFace(LLMFactory):
-    def __init__(self, model: str, task=None, trust_remote_code=True, device_map="auto", return_full_text=True,
-            tokenizer=None, **kwargs):
-        self.kwargs = kwargs
-        self.kwargs.update(dict(task=task, model=model, trust_remote_code=trust_remote_code, device_map=device_map,
-            tokenizer=tokenizer, return_full_text=return_full_text))
+    def __init__(self, model: str, task="text-generation", trust_remote_code=True, device_map="auto", return_full_text=True,
+            tokenizer=None, streamer=None, **pipeline_args):
+        self.pipeline_args = pipeline_args
+        self.pipeline_args.update(dict(task=task, model=model, trust_remote_code=trust_remote_code, device_map=device_map,
+            tokenizer=tokenizer, return_full_text=return_full_text, streamer=streamer))
 
-    def create_llm(self) -> HuggingFacePipeline:
-        from transformers import pipeline
-        pipe = pipeline(**self.kwargs)
-        return HuggingFacePipeline(pipeline=pipe)
+    def tokenizer(self):
+        tokenizer = self.pipeline_args["tokenizer"]
+        if tokenizer is None:
+            tokenizer = AutoTokenizer.from_pretrained(self.pipeline_args["model"])
+            self.pipeline_args["tokenizer"] = tokenizer
+        return tokenizer
+
+    def create_pipeline(self, **kwargs) -> Pipeline:
+        self.pipeline_args.update(kwargs)
+        return pipeline(**self.pipeline_args)
+
+    def create_llm(self, pipeline=None, **kwargs) -> HuggingFacePipeline:
+        if pipeline is None:
+            pipeline = self.create_pipeline()
+        return HuggingFacePipeline(pipeline=pipeline, **kwargs)
+
+    def create_streaming_llm(self) -> StreamingLLM:
+        return TransformersStreamingLLM(self)
 
 
 class LLMFactoryHuggingFaceGPT2(LLMFactoryHuggingFace):
-    def __init__(self):
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+    def __init__(self, **kwargs):
         model_id = "gpt2"
         tokenizer = AutoTokenizer.from_pretrained(model_id)
         model = AutoModelForCausalLM.from_pretrained(model_id)
-        super().__init__(task="text-generation", model=model, tokenizer=tokenizer)
+        super().__init__(model=model, tokenizer=tokenizer, **kwargs)
 
 
 class LLMFactoryHuggingFaceDolly7B(LLMFactoryHuggingFace):
     def __init__(self):
         super().__init__("databricks/dolly-v2-7b")
+
+
+class LLMFactoryHuggingFaceStarChat(LLMFactoryHuggingFace):
+    def __init__(self):
+        super().__init__("HuggingFaceH4/starchat-alpha")
 
 
 class TokenReaderCallback(BaseCallbackHandler):
@@ -110,11 +156,65 @@ class TokenReaderCallback(BaseCallbackHandler):
         pass
 
 
+class LangChainStreamingLLM(StreamingLLM):
+    def query_streaming(self, prompt: str) -> Iterator[str]:
+        yield from self.TextInIteratorOut(self.llm).query(prompt)
+
+    class TextInIteratorOut:
+        def __init__(self, llm: BaseLLM):
+            self.llm = llm
+
+        class ReaderThread(threading.Thread):
+            def __init__(self, llm: BaseLLM, prompt: str, q: queue.Queue):
+                super().__init__()
+                self.llm = llm
+                self.prompt = prompt
+                self.queue = q
+
+            def run(self):
+                self.llm(self.prompt, callbacks=[TokenReaderCallback(lambda token: self.queue.put(token))])
+
+        def query(self, prompt: str) -> Iterator[str]:
+            q = queue.Queue()
+            thread = self.ReaderThread(self.llm, prompt, q)
+            thread.start()
+
+            while True:
+                token = q.get()
+                if token is None:
+                    break
+                yield token
+
+
+class TransformersStreamingLLM(StreamingLLM):
+    def __init__(self, factory: LLMFactoryHuggingFace):
+        streamer = TextIteratorStreamer(factory.tokenizer(), skip_prompt=True)
+        # TODO The use of a single streamer becomes problematic when handling parallel requests.
+        # We should investigate ways of injecting a new streamer for every request.
+        pipeline = factory.create_pipeline(streamer=streamer)
+        llm = factory.create_llm(pipeline=pipeline)
+        self.streamer = streamer
+        super().__init__(llm)
+
+    def query_streaming(self, prompt: str) -> Iterator[str]:
+        def query():
+            self.query(prompt)
+
+        thread = Thread(target=query)
+        thread.start()
+
+        for token in self.streamer:
+            if token == self.streamer.stop_signal:
+                break
+            yield token
+
+
 class LLMType(Enum):
     OPENAI_DAVINCI3 = LLMFactoryOpenAICompletions
     OPENAI_CHAT_GPT4 = LLMFactoryOpenAIChat
     HUGGINGFACE_GPT2 = LLMFactoryHuggingFaceGPT2
     HUGGINGFACE_DOLLY_7B = LLMFactoryHuggingFaceDolly7B
+    HUGGINGFACE_STARCHAT = LLMFactoryHuggingFaceStarChat
 
     def create_factory(self) -> LLMFactory:
         factory_cls = self.value
@@ -123,7 +223,7 @@ class LLMType(Enum):
     def create_llm(self) -> BaseLLM:
         return self.create_factory().create_llm()
 
-    def create_streaming_llm(self) -> BaseLLM:
+    def create_streaming_llm(self) -> StreamingLLM:
         return self.create_factory().create_streaming_llm()
 
     def chunk_size(self):
@@ -142,29 +242,3 @@ class TextInTextOut:
     def query(self, prompt: str) -> str:
         result: LLMResult = self.llm.generate([prompt])
         return result.generations[0][0].text
-
-
-class TextInIteratorOut:
-    def __init__(self, llm: BaseLLM):
-        self.llm = llm
-
-    class ReaderThread(threading.Thread):
-        def __init__(self, llm: BaseLLM, prompt: str, q: queue.Queue):
-            super().__init__()
-            self.llm = llm
-            self.prompt = prompt
-            self.queue = q
-
-        def run(self):
-            self.llm(self.prompt, callbacks=[TokenReaderCallback(lambda token: self.queue.put(token))])
-
-    def query(self, prompt: str) -> Iterator[str]:
-        q = queue.Queue()
-        thread = self.ReaderThread(self.llm, prompt, q)
-        thread.start()
-
-        while True:
-            token = q.get()
-            if token is None:
-                break
-            yield token

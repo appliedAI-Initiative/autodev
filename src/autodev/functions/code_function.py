@@ -5,15 +5,12 @@ LLM functions that take code as input and return text/code.
 from abc import ABC, abstractmethod
 from typing import Iterator
 
-from langchain.llms import BaseLLM
-
-from autodev.llm import TextInTextOut, TextInIteratorOut
+from autodev.llm import StreamingLLM
 
 
 class CodeFunction(ABC):
-    def __init__(self, llm: BaseLLM):
-        self.tito = TextInTextOut(llm)
-        self.tiio = TextInIteratorOut(llm)
+    def __init__(self, sllm: StreamingLLM):
+        self.sllm = sllm
 
     @abstractmethod
     def generate_prompt(self, code: str) -> str:
@@ -21,11 +18,11 @@ class CodeFunction(ABC):
 
     def apply(self, code: str) -> str:
         prompt = self.generate_prompt(code)
-        return self.tito.query(prompt)
+        return self.sllm.query(prompt)
 
     def apply_streaming(self, code: str) -> Iterator[str]:
         prompt = self.generate_prompt(code)
-        yield from self.tiio.query(prompt)
+        yield from self.sllm.query_streaming(prompt)
 
 
 class AddDocstringsFunction(CodeFunction):
