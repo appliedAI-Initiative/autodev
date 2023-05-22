@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 
 public class PotentialProblemsAction extends GenerateToolWindowResponseEditorActionStreamed {
+    public PotentialProblemsAction() {
+        super(true);
+    }
+
     @Override
     protected PipedInputStream generateResponse(String code) throws IOException {
         return client.callCodeFunctionStreamed("potential-problems", code);

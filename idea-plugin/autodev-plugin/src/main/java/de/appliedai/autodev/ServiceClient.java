@@ -107,7 +107,6 @@ public class ServiceClient {
         }
     }
 
-
     public String callCodeFunction(String fn, String code) throws IOException, InterruptedException {
         HashMap<Object, Object> data = new HashMap<>();
         data.put("code", code);
