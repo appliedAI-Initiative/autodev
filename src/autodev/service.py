@@ -25,14 +25,6 @@ class Service:
         self._add_streaming_code_function("/fn/stream/implement-tests", ImplementTestsFunction(llm), html=False)
 
     @staticmethod
-    def _issue_code_request(fn: CodeFunction):
-        print(request)
-        print(request.form)
-        code = request.form.get("code")
-        result = fn.apply(code)
-        return result
-
-    @staticmethod
     def _format_html(response: str) -> str:
         code_blocks = []
 
@@ -60,7 +52,10 @@ class Service:
 
     def _add_code_function(self, path, fn: CodeFunction, html=False):
         def handle():
-            response = self._issue_code_request(fn)
+            print(request)
+            print(request.form)
+            code = request.form.get("code")
+            response = fn.apply(code)
             if html:
                 response = self._format_html(response)
             return response
