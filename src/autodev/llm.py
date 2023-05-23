@@ -40,7 +40,8 @@ class LLMFactory(ABC):
 
 
 class LLMFactoryOpenAICompletions(LLMFactory):
-    def __init__(self, model_name: Literal["text-davinci-003", "text-davinci-002", "text-curie-001", "text-babbage-001", "text-ada-001"] = "text-davinci-003"):
+    def __init__(self, model_name: Literal["text-davinci-003", "text-davinci-002", "text-curie-001", "text-babbage-001",
+            "text-ada-001"] = "text-davinci-003"):
         self.model_name = model_name
 
     def create_llm(self, **kwargs) -> OpenAI:
@@ -52,7 +53,8 @@ class LLMFactoryOpenAICompletions(LLMFactory):
 
 
 class LLMFactoryOpenAIChat(LLMFactory):
-    def __init__(self, model_name: Literal["gpt-4", "gpt-4-0314", "gpt-4-32k", "gpt-4-32k-0314", "gpt-3.5-turbo", "gpt-3.5-turbo-0301"] = "gpt-4"):
+    def __init__(self, model_name: Literal["gpt-4", "gpt-4-0314", "gpt-4-32k", "gpt-4-32k-0314", "gpt-3.5-turbo",
+            "gpt-3.5-turbo-0301"] = "gpt-4"):
         self.model_name = model_name
 
     def create_llm(self, **kwargs) -> OpenAIChat:
@@ -64,10 +66,12 @@ class LLMFactoryOpenAIChat(LLMFactory):
 
 
 class LLMFactoryHuggingFace(LLMFactory):
-    def __init__(self, model: str, task="text-generation", trust_remote_code=True, device_map="auto", return_full_text=True,
+    def __init__(self, model: str, task="text-generation", trust_remote_code=True, device_map="auto",
+            return_full_text=True,
             tokenizer=None, streamer=None, **pipeline_args):
         self.pipeline_args = pipeline_args
-        self.pipeline_args.update(dict(task=task, model=model, trust_remote_code=trust_remote_code, device_map=device_map,
+        self.pipeline_args.update(dict(task=task, model=model, trust_remote_code=trust_remote_code,
+            device_map=device_map,
             tokenizer=tokenizer, return_full_text=return_full_text, streamer=streamer))
 
     def tokenizer(self):
@@ -233,12 +237,3 @@ class LLMType(Enum):
             return 512
         else:
             raise ValueError(self)
-
-
-class TextInTextOut:
-    def __init__(self, llm: BaseLLM):
-        self.llm = llm
-
-    def query(self, prompt: str) -> str:
-        result: LLMResult = self.llm.generate([prompt])
-        return result.generations[0][0].text
