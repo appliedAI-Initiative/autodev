@@ -12,7 +12,11 @@ log = logging.getLogger(__name__)
 
 class PythonDocumentDatabaseSensai(PythonDocumentDatabase):
     def __init__(self):
-        super().__init__("sensai", os.path.join("..", "sensai", "src"))
+        sensai_src_path = os.path.join("..", "sensai", "src")
+        if not os.path.exists(sensai_src_path):
+            raise Exception(f"sensAI source directory was not found in {os.path.abspath(sensai_src_path)}; "
+                f"clone the repository: git clone https://github.com/jambit/sensAI.git")
+        super().__init__("sensai", sensai_src_path)
 
 
 class UseCasePythonSensai(UseCase):

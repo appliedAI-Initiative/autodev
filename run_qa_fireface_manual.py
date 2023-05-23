@@ -1,6 +1,8 @@
 import logging
 import os
+import shutil
 import sys
+import urllib
 
 from langchain.text_splitter import CharacterTextSplitter
 
@@ -12,7 +14,13 @@ log = logging.getLogger(__name__)
 
 class DocumentDatabaseFirefaceManual(SingleTextFileDocumentDatabase):
     def __init__(self):
-        super().__init__("fireface", os.path.join('data', 'fface_uc_e.txt'))
+        manual_path = os.path.join('data', 'fface_uc_e.txt')
+        if not os.path.exists(manual_path):
+            log.info("Fireface manual not found. Downloading...")
+            url = "https://drive.google.com/uc?export=download&id=1cx2kljZY-CNQa3jdq4oGqpXYNQ3nFJDG"
+            with urllib.request.urlopen(url) as response, open(manual_path, 'wb') as out_file:
+                shutil.copyfileobj(response, out_file)
+        super().__init__("fireface", manual_path)
 
 
 class UseCaseFirefaceManual(UseCase):
