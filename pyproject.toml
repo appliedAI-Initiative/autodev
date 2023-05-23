@@ -19,6 +19,7 @@ tiktoken = "^0.4.0"
 accelerate = "^0.19.0"
 transformers = "4.29.2"
 jupyter = "^1.0.0"
+xformers = "^0.0.19"
 
 
 [tool.poetry.dev-dependencies]

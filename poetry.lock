@@ -3149,6 +3149,22 @@ files = [
 plugins = ["importlib-metadata"]
 
 [[package]]
+name = "pyre-extensions"
+version = "0.0.29"
+description = "Type system extensions for use with the pyre type checker"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyre-extensions-0.0.29.tar.gz", hash = "sha256:4113600706c47306a156dcc9c405f4d458c505be432699571e357ef20e2d5d77"},
+    {file = "pyre_extensions-0.0.29-py3-none-any.whl", hash = "sha256:f4fef9089872c0656f82de7e8f357af0377dcbb6c2deadc1a7d3037aaf43757e"},
+]
+
+[package.dependencies]
+typing-extensions = "*"
+typing-inspect = "*"
+
+[[package]]
 name = "pyrsistent"
 version = "0.19.3"
 description = "Persistent/Functional/Immutable data structures"
@@ -4790,6 +4806,27 @@ files = [
 ]
 
 [[package]]
+name = "xformers"
+version = "0.0.19"
+description = "XFormers: A collection of composable Transformer building blocks."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "xformers-0.0.19-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:a64fc7be47813e66cac278f7d5451db16243fa758973e90acce3649c63bbf771"},
+    {file = "xformers-0.0.19-cp310-cp310-win_amd64.whl", hash = "sha256:542d2d04f1bc42c11f22fd2360b52b737132a405a8572dde1e251082be477790"},
+    {file = "xformers-0.0.19-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:f5a874c4bf7831e55c691b8f133499db4ae489dfaa14c1af9674b929f59d4c79"},
+    {file = "xformers-0.0.19-cp38-cp38-win_amd64.whl", hash = "sha256:2fa58b84db175c9636d6b04d8278f1b4284b096e774b6ed7f449cf7949a3bc49"},
+    {file = "xformers-0.0.19-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:ed352f4a09b30f72409c57248cf15728838967ec175e2befe8aaece6e90be456"},
+    {file = "xformers-0.0.19-cp39-cp39-win_amd64.whl", hash = "sha256:8f86c18ff582d7aa456afde361c9050d6f5188312ed4727136bbcb00a3c49e8f"},
+]
+
+[package.dependencies]
+numpy = "*"
+pyre-extensions = "0.0.29"
+torch = "2.0.0"
+
+[[package]]
 name = "yarl"
 version = "1.9.2"
 description = "Yet another URL library"
@@ -4939,4 +4976,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "76d5bd75ee9c2bbe416f7e793776f93b282fe6ca4f5e33559f60c46bf92c1e84"
+content-hash = "a1af7e5b7ec155e35a6157b1e0e768a2087ff4075de2f341f2120a0d0852e84c"
