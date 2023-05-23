@@ -1,3 +1,6 @@
+"""
+Simple question answering based on a (fixed) document database (based on the langchain implementation).
+"""
 import logging
 import os
 from typing import List

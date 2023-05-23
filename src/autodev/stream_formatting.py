@@ -1,3 +1,6 @@
+"""
+Supports the formatting of streamed LLM responses, particularly for the generation of HTML output
+"""
 import logging
 import re
 from abc import abstractmethod, ABC

@@ -1,7 +1,7 @@
 import warnings
 
 
-def patch_transformers():
+def _patch_transformers():
     """
     Patches functions from transformers that do not work correctly
     """
@@ -58,4 +58,4 @@ def patch_transformers():
     TextGenerationPipeline._forward = _forward
 
 
-patch_transformers()
+_patch_transformers()

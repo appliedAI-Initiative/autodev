@@ -1,7 +1,7 @@
 """
-LLM functions that take code as input and return text/code.
+Contains code assistant functions that take code as input and return text/code, supporting editor-based
+actions where the user selects text in the editor and then uses the context menu to invoke an assistant function.
 """
-
 from abc import ABC, abstractmethod
 from typing import Iterator
 

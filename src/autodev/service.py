@@ -1,12 +1,15 @@
+"""
+Service implementation to support remote requests from an IDE plugin
+"""
 import re
 import sys
 
 from flask import Flask, request
 
-from autodev.functions.code_function import CodeFunction, ReviewFunction, ImproveCodeFunction, ExplainCodeFunction, \
+from autodev.code_functions import CodeFunction, ReviewFunction, ImproveCodeFunction, ExplainCodeFunction, \
     ImplementTestsFunction, AddDocstringsFunction, PotentialProblemsFunction
 from autodev.llm import LLMType
-from autodev.response_stream_formatting import StreamHtmlFormatter
+from autodev.stream_formatting import StreamHtmlFormatter
 
 
 class Service:
