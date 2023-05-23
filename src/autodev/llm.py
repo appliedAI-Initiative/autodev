@@ -4,6 +4,7 @@ The high-level abstraction, which provides streaming-based queries, is given by 
 Instances of `StreamingLLM` can be created via specializations of the `LLMFactory` class.
 `LLMType` constitutes a convenient enumeration of the model types considered in concrete factory implementations.
 """
+import logging
 import queue
 import threading
 from abc import ABC, abstractmethod
@@ -11,11 +12,14 @@ from enum import Enum
 from threading import Thread
 from typing import Literal, Dict, Any, List, Union, Callable, Iterator, Optional
 
+import torch
 from langchain import OpenAI, HuggingFacePipeline
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.llms import OpenAIChat, BaseLLM
 from langchain.schema import LLMResult, AgentFinish, AgentAction
 from transformers import Pipeline, pipeline, TextIteratorStreamer, AutoTokenizer, AutoModelForCausalLM, GenerationConfig
+
+log = logging.getLogger(__name__)
 
 
 class Prompt:
@@ -142,7 +146,8 @@ class LLMFactoryOpenAIChat(LLMFactory):
 class LLMFactoryHuggingFace(LLMFactory):
     def __init__(self, model: str, task="text-generation", trust_remote_code=True, device_map="auto",
             return_full_text=True,
-            tokenizer=None, streamer=None, **pipeline_args):
+            tokenizer=None, streamer=None,
+            **pipeline_args):
         self.pipeline_args = pipeline_args
         self.pipeline_args.update(dict(task=task, model=model, trust_remote_code=trust_remote_code,
             device_map=device_map,
@@ -157,7 +162,8 @@ class LLMFactoryHuggingFace(LLMFactory):
 
     def create_pipeline(self, **kwargs) -> Pipeline:
         self.pipeline_args.update(kwargs)
-        return pipeline(**self.pipeline_args)
+        pipe = pipeline(**self.pipeline_args)
+        return pipe
 
     def create_llm(self, pipeline=None, **kwargs) -> HuggingFacePipeline:
         if pipeline is None:
@@ -187,7 +193,8 @@ class LLMFactoryHuggingFaceStarChat(LLMFactoryHuggingFace):
         tokenizer = AutoTokenizer.from_pretrained(model_id, eos_token="<|end|>")
         generation_config = GenerationConfig.from_pretrained(model_id)
         generation_config.eos_token_id = tokenizer.eos_token_id
-        super().__init__(model_id, max_new_tokens=1024, tokenizer=tokenizer, generation_config=generation_config)
+        super().__init__(model_id, max_new_tokens=1024, tokenizer=tokenizer, generation_config=generation_config,
+            torch_dtype=torch.bfloat16)
 
     def create_prompt_factory(self) -> Optional[PromptFactory]:
         return self.PromptFactory()
