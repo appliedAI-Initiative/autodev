@@ -9,7 +9,7 @@ from langchain import OpenAI, HuggingFacePipeline
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.llms import OpenAIChat, BaseLLM
 from langchain.schema import LLMResult, AgentFinish, AgentAction
-from transformers import Pipeline, pipeline, TextIteratorStreamer, AutoTokenizer, AutoModelForCausalLM
+from transformers import Pipeline, pipeline, TextIteratorStreamer, AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 
 
 class Prompt:
@@ -116,7 +116,7 @@ class LLMFactoryHuggingFace(LLMFactory):
             device_map=device_map,
             tokenizer=tokenizer, return_full_text=return_full_text, streamer=streamer))
 
-    def tokenizer(self):
+    def tokenizer(self) -> AutoTokenizer:
         tokenizer = self.pipeline_args["tokenizer"]
         if tokenizer is None:
             tokenizer = AutoTokenizer.from_pretrained(self.pipeline_args["model"])
@@ -151,7 +151,11 @@ class LLMFactoryHuggingFaceDolly7B(LLMFactoryHuggingFace):
 
 class LLMFactoryHuggingFaceStarChat(LLMFactoryHuggingFace):
     def __init__(self):
-        super().__init__("HuggingFaceH4/starchat-alpha", max_new_tokens=1024)
+        model_id = "HuggingFaceH4/starchat-alpha"
+        tokenizer = AutoTokenizer.from_pretrained(model_id, eos_token="<|end|>")
+        generation_config = GenerationConfig.from_pretrained(model_id)
+        generation_config.eos_token_id = tokenizer.eos_token_id
+        super().__init__(model_id, max_new_tokens=1024, tokenizer=tokenizer, generation_config=generation_config)
 
     def create_prompt_factory(self) -> Optional[PromptFactory]:
         return self.PromptFactory()
