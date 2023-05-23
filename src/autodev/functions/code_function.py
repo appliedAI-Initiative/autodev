@@ -16,9 +16,9 @@ class CodeFunction(ABC):
     def generate_prompt(self, code: str) -> str:
         pass
 
-    def apply(self, code: str) -> str:
+    def apply(self, code: str, stream=None) -> str:
         prompt = self.generate_prompt(code)
-        return self.sllm.query(prompt)
+        return self.sllm.query(prompt, stream=stream)
 
     def apply_streaming(self, code: str) -> Iterator[str]:
         prompt = self.generate_prompt(code)

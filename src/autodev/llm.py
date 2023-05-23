@@ -39,9 +39,25 @@ class StreamingLLM(ABC):
         else:
             return prompt
 
-    def query(self, prompt: Union[str, Prompt]) -> str:
-        result: LLMResult = self.llm.generate([self._prompt(prompt).text])
-        return result.generations[0][0].text
+    def query(self, prompt: Union[str, Prompt], stream=None) -> str:
+        """
+        Query the model with the given prompt, returning the full response string
+
+        :param prompt: the prompt
+        :param stream: a stream supporting the `write` method to which response tokens shall be written as they
+            are generate; if not None, the model's `query_streaming` method is used to generate the response
+            rather than a non-streaming method of the base model
+        :return: the full response string
+        """
+        if stream is None:
+            result: LLMResult = self.llm.generate([self._prompt(prompt).text])
+            return result.generations[0][0].text
+        else:
+            response = ""
+            for token in self.query_streaming(prompt):
+                response += token
+                stream.write(token)
+            return response
 
     @abstractmethod
     def query_streaming(self, prompt: Union[str, Prompt]) -> Iterator[str]:
