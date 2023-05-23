@@ -3,7 +3,7 @@ import threading
 from abc import ABC, abstractmethod
 from enum import Enum
 from threading import Thread
-from typing import Literal, Dict, Any, List, Union, Callable, Iterator
+from typing import Literal, Dict, Any, List, Union, Callable, Iterator, Optional
 
 from langchain import OpenAI, HuggingFacePipeline
 from langchain.callbacks.base import BaseCallbackHandler
@@ -12,16 +12,39 @@ from langchain.schema import LLMResult, AgentFinish, AgentAction
 from transformers import Pipeline, pipeline, TextIteratorStreamer, AutoTokenizer, AutoModelForCausalLM
 
 
-class StreamingLLM(ABC):
-    def __init__(self, llm: BaseLLM):
-        self.llm = llm
+class Prompt:
+    def __init__(self, prompt_text):
+        self.text = prompt_text
 
-    def query(self, prompt: str) -> str:
-        result: LLMResult = self.llm.generate([prompt])
+
+class PromptFactory(ABC):
+    @abstractmethod
+    def create(self, prompt: str) -> Prompt:
+        pass
+
+
+class PromptFactoryIdentity(PromptFactory):
+    def create(self, prompt: str) -> Prompt:
+        return Prompt(prompt)
+
+
+class StreamingLLM(ABC):
+    def __init__(self, llm: BaseLLM, prompt_factory: Optional[PromptFactory] = None):
+        self.llm = llm
+        self.prompt_factory = prompt_factory if prompt_factory is not None else PromptFactoryIdentity()
+
+    def _prompt(self, prompt: Union[str, Prompt]) -> Prompt:
+        if not isinstance(prompt, Prompt):
+            return self.prompt_factory.create(prompt)
+        else:
+            return prompt
+
+    def query(self, prompt: Union[str, Prompt]) -> str:
+        result: LLMResult = self.llm.generate([self._prompt(prompt).text])
         return result.generations[0][0].text
 
     @abstractmethod
-    def query_streaming(self, prompt: str) -> Iterator[str]:
+    def query_streaming(self, prompt: Union[str, Prompt]) -> Iterator[str]:
         pass
 
 
@@ -38,6 +61,9 @@ class LLMFactory(ABC):
     def create_streaming_llm(self) -> StreamingLLM:
         pass
 
+    def create_prompt_factory(self) -> Optional[PromptFactory]:
+        return None
+
 
 class LLMFactoryOpenAICompletions(LLMFactory):
     def __init__(self, model_name: Literal["text-davinci-003", "text-davinci-002", "text-curie-001", "text-babbage-001",
@@ -49,7 +75,7 @@ class LLMFactoryOpenAICompletions(LLMFactory):
 
     def create_streaming_llm(self) -> StreamingLLM:
         llm = self.create_llm(streaming=True)
-        return LangChainStreamingLLM(llm)
+        return LangChainStreamingLLM(llm, prompt_factory=self.create_prompt_factory())
 
 
 class LLMFactoryOpenAIChat(LLMFactory):
@@ -62,7 +88,7 @@ class LLMFactoryOpenAIChat(LLMFactory):
 
     def create_streaming_llm(self) -> StreamingLLM:
         llm = self.create_llm(streaming=True)
-        return LangChainStreamingLLM(llm)
+        return LangChainStreamingLLM(llm, prompt_factory=self.create_prompt_factory())
 
 
 class LLMFactoryHuggingFace(LLMFactory):
@@ -91,7 +117,7 @@ class LLMFactoryHuggingFace(LLMFactory):
         return HuggingFacePipeline(pipeline=pipeline, **kwargs)
 
     def create_streaming_llm(self) -> StreamingLLM:
-        return TransformersStreamingLLM(self)
+        return TransformersStreamingLLM(self, prompt_factory=self.create_prompt_factory())
 
 
 class LLMFactoryHuggingFaceGPT2(LLMFactoryHuggingFace):
@@ -109,7 +135,14 @@ class LLMFactoryHuggingFaceDolly7B(LLMFactoryHuggingFace):
 
 class LLMFactoryHuggingFaceStarChat(LLMFactoryHuggingFace):
     def __init__(self):
-        super().__init__("HuggingFaceH4/starchat-alpha")
+        super().__init__("HuggingFaceH4/starchat-alpha", max_new_tokens=1024)
+
+    def create_prompt_factory(self) -> Optional[PromptFactory]:
+        return self.PromptFactory()
+
+    class PromptFactory(PromptFactory):
+        def create(self, prompt: str) -> Prompt:
+            return Prompt(f"<|system|><|end|><|user|>{prompt}<|end|><|assistant|>")
 
 
 class TokenReaderCallback(BaseCallbackHandler):
@@ -161,8 +194,11 @@ class TokenReaderCallback(BaseCallbackHandler):
 
 
 class LangChainStreamingLLM(StreamingLLM):
-    def query_streaming(self, prompt: str) -> Iterator[str]:
-        yield from self.TextInIteratorOut(self.llm).query(prompt)
+    def __init__(self, llm: BaseLLM, prompt_factory: Optional[PromptFactory] = None):
+        super().__init__(llm, prompt_factory=prompt_factory)
+
+    def query_streaming(self, prompt: Union[str, Prompt]) -> Iterator[str]:
+        yield from self.TextInIteratorOut(self.llm).query(self._prompt(prompt).text)
 
     class TextInIteratorOut:
         def __init__(self, llm: BaseLLM):
@@ -191,16 +227,16 @@ class LangChainStreamingLLM(StreamingLLM):
 
 
 class TransformersStreamingLLM(StreamingLLM):
-    def __init__(self, factory: LLMFactoryHuggingFace):
+    def __init__(self, factory: LLMFactoryHuggingFace, prompt_factory: Optional[PromptFactory] = None):
         streamer = TextIteratorStreamer(factory.tokenizer(), skip_prompt=True)
         # TODO The use of a single streamer becomes problematic when handling parallel requests.
         # We should investigate ways of injecting a new streamer for every request.
         pipeline = factory.create_pipeline(streamer=streamer)
         llm = factory.create_llm(pipeline=pipeline)
         self.streamer = streamer
-        super().__init__(llm)
+        super().__init__(llm, prompt_factory=prompt_factory)
 
-    def query_streaming(self, prompt: str) -> Iterator[str]:
+    def query_streaming(self, prompt: Union[str, Prompt]) -> Iterator[str]:
         def query():
             self.query(prompt)
 
