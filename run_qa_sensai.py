@@ -1,9 +1,8 @@
-import logging
 import os
-import sys
 
 from langchain.text_splitter import PythonCodeTextSplitter
 
+from autodev import logging
 from autodev.document_qa import PythonDocumentDatabase, UseCase
 from autodev.llm import LLMType
 
@@ -34,7 +33,7 @@ class UseCasePythonSensai(UseCase):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(levelname)-5s %(asctime)-15s %(name)s:%(funcName)s - %(message)s', stream=sys.stdout, level=logging.INFO)
+    logging.configure()
 
     use_case = UseCasePythonSensai(LLMType.OPENAI_CHAT_GPT4)
 

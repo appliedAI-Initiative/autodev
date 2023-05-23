@@ -8,6 +8,7 @@ from langchain.text_splitter import CharacterTextSplitter
 
 from autodev.document_qa import UseCase, SingleTextFileDocumentDatabase
 from autodev.llm import LLMType
+from autodev import logging
 
 log = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ class UseCaseFirefaceManual(UseCase):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(levelname)-5s %(asctime)-15s %(name)s:%(funcName)s - %(message)s', stream=sys.stdout, level=logging.INFO)
+    logging.configure()
 
     use_case = UseCaseFirefaceManual(LLMType.OPENAI_DAVINCI3)
     #use_case = UseCaseFirefaceManual(LLMType.OPENAI_CHAT_GPT4)
