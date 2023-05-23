@@ -96,7 +96,3 @@ class Service:
 
     def run(self):
         self.app.run()
-
-
-if __name__ == '__main__':
-    Service(LLMType.OPENAI_CHAT_GPT4).run()
