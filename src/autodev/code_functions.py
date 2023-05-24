@@ -43,7 +43,7 @@ class ExplainCodeFunction(CodeFunction):
 
 
 class ImplementTestsFunction(CodeFunction):
-    PROMPT_TEMPLATE = "Please implement tests for this piece of code:\n\n" \
+    PROMPT_TEMPLATE = "Please implement tests for this piece of code. For Python code, use pytest.\n\n" \
         "{code}\n\n" \
         "Test code:"
 
@@ -62,7 +62,9 @@ class ImproveCodeFunction(CodeFunction):
 
 
 class PotentialProblemsFunction(CodeFunction):
-    PROMPT_TEMPLATE = "What are potential problems in this piece of code?\n\n" \
+    PROMPT_TEMPLATE = \
+        "What are potential problems in this piece of code?\n"\
+        "The code may be taken out of context, so please ignore missing imports.\n\n" \
         "{code}\n\n" \
         "Potential problems:"
 
@@ -71,7 +73,19 @@ class PotentialProblemsFunction(CodeFunction):
 
 
 class ReviewFunction(CodeFunction):
-    PROMPT_TEMPLATE = "Please review this piece of code:\n\n{code}"
+    PROMPT_TEMPLATE = "Please review this piece of code, highlighting strengths and weaknesses in the " \
+        "implementation:\n\n" \
+        "{code}"
+
+    def generate_prompt(self, code: str) -> str:
+        return self.PROMPT_TEMPLATE.format(code=code)
+
+
+class InputChecksFunction(CodeFunction):
+    PROMPT_TEMPLATE = \
+        "Please write code that checks the inputs for the function in the code that follows.\n" \
+        "{code}\n\n" \
+        "Code for checking the inputs:"
 
     def generate_prompt(self, code: str) -> str:
         return self.PROMPT_TEMPLATE.format(code=code)
