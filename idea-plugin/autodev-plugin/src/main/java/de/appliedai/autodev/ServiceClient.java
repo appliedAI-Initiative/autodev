@@ -81,7 +81,7 @@ public class ServiceClient {
      * @param outputStream the stream to which the response shall be written
      * @throws IOException
      */
-    private void post(URI uri, HashMap<String, String> data, PipedOutputStream outputStream) throws IOException {
+    private void post(URI uri, HashMap<String, String> data, PipedOutputStream outputStream, PipedOutputStream metaOutputStream) throws IOException {
         try(CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(uri);
 
@@ -93,7 +93,11 @@ public class ServiceClient {
 
             org.apache.http.HttpResponse response = httpClient.execute(httpPost);
             System.out.println("Response status: " + response.getStatusLine());
-            InputStream inputStream = response.getEntity().getContent();
+            HttpEntity responseEntity = response.getEntity();
+            boolean isHtml = responseEntity.getContentType().getValue().contains("html");
+            ResponseMetadata responseMetadata = new ResponseMetadata(isHtml);
+            new ObjectOutputStream(metaOutputStream).writeObject(responseMetadata);
+            InputStream inputStream = responseEntity.getContent();
             try (outputStream) {
                 byte[] buffer = new byte[2];
                 int bytesRead;
@@ -102,7 +106,7 @@ public class ServiceClient {
                 }
             }
             finally {
-                EntityUtils.consume(response.getEntity());
+                EntityUtils.consume(responseEntity);
             }
         }
     }
@@ -113,7 +117,7 @@ public class ServiceClient {
         return post(URI.create(serviceUrl + "fn/" + fn), data);
     }
 
-    public PipedInputStream callCodeFunctionStreamed(String fn, String code) throws IOException {
+    public StreamedResponse callCodeFunctionStreamed(String fn, String code) throws IOException {
         HashMap<String, String> data = new HashMap<>();
         data.put("code", code);
 
@@ -121,14 +125,59 @@ public class ServiceClient {
         @SuppressWarnings("resource") PipedOutputStream os = new PipedOutputStream();
         os.connect(is);
 
+        PipedInputStream metaInputStream = new PipedInputStream();
+        @SuppressWarnings("resource") PipedOutputStream metaOutputStream = new PipedOutputStream();
+        metaOutputStream.connect(metaInputStream);
+
         new Thread(() -> {
             try {
-                post(URI.create(serviceUrl + "fn/stream/" + fn), data, os);
+                post(URI.create(serviceUrl + "fn/stream/" + fn), data, os, metaOutputStream);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }).start();
 
-        return is;
+        return new StreamedResponse(is, metaInputStream);
+    }
+
+    public static class ResponseMetadata implements Serializable {
+        public final boolean isHtml;
+
+        public ResponseMetadata(boolean isHtml) {
+            this.isHtml = isHtml;
+        }
+    }
+
+    public static class StreamedResponse implements AutoCloseable {
+        private final PipedInputStream is, isMeta;
+        private ResponseMetadata responseMetadata = null;
+
+        public StreamedResponse(PipedInputStream is, PipedInputStream metaInputStream) {
+            this.is = is;
+            this.isMeta = metaInputStream;
+        }
+
+        public PipedInputStream getInputStream() {
+            return is;
+        }
+
+        public ResponseMetadata getResponseMetadataBlocking() {
+            if (responseMetadata == null) {
+                try {
+                    ObjectInputStream metaInputStream = new ObjectInputStream(isMeta);
+                    responseMetadata = (ResponseMetadata) metaInputStream.readObject();
+                }
+                catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return responseMetadata;
+        }
+
+        @Override
+        public void close() throws Exception {
+            is.close();
+            isMeta.close();
+        }
     }
 }

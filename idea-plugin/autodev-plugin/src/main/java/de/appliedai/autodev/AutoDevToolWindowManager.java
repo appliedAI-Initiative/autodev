@@ -1,6 +1,7 @@
 package de.appliedai.autodev;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.RegisterToolWindowTask;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -13,10 +14,7 @@ import javax.swing.text.Element;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PipedInputStream;
+import java.io.*;
 
 public class AutoDevToolWindowManager {
     private static final String toolWindowId = "AutoDev";
@@ -43,11 +41,12 @@ public class AutoDevToolWindowManager {
         return toolWindowContent;
     }
 
-    public static void addTabStreamed(PipedInputStream is, Project project, String tabName, boolean isHtml) throws IOException {
-        ToolWindowContent toolWindowContent = addTab("", project, tabName, isHtml);
+    public static void addTabStreamed(ServiceClient.StreamedResponse response, Project project, String tabName) {
+        ToolWindowContent toolWindowContent = addTab("", project, tabName, response.getResponseMetadataBlocking().isHtml);
 
         new Thread(() -> {
-            try(is) {
+            InputStream is = response.getInputStream();
+            try(response) {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
                 char[] buf = new char[1];
                 int numCharsRead;
@@ -55,8 +54,9 @@ public class AutoDevToolWindowManager {
                     toolWindowContent.append(String.valueOf(buf));
                 }
             }
-            catch (IOException e) {
-                e.printStackTrace();
+            catch (Throwable t) {
+                t.printStackTrace();
+                Messages.showInfoMessage(project, t.toString(), "AutoDev Error");
             }
         }).start();
     }
