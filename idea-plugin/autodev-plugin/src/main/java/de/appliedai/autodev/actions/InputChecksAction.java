@@ -5,9 +5,9 @@ import de.appliedai.autodev.actions.base.GenerateToolWindowResponseEditorActionS
 
 import java.io.IOException;
 
-public class ImproveCodeAction extends GenerateToolWindowResponseEditorActionStreamed {
+public class InputChecksAction extends GenerateToolWindowResponseEditorActionStreamed {
     @Override
     protected ServiceClient.StreamedResponse generateResponse(String code) throws IOException {
-        return client.callCodeFunctionStreamed("improve-code", code);
+        return client.callCodeFunctionStreamed("input-checks", code);
     }
 }

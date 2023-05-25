@@ -1,12 +1,13 @@
 package de.appliedai.autodev.actions;
 
-import de.appliedai.autodev.actions.base.ReplaceTextEditorAction;
+import de.appliedai.autodev.ServiceClient;
+import de.appliedai.autodev.actions.base.GenerateToolWindowResponseEditorActionStreamed;
 
 import java.io.IOException;
 
-public class AddDocstringsAction extends ReplaceTextEditorAction {
+public class AddDocstringsAction extends GenerateToolWindowResponseEditorActionStreamed {
     @Override
-    public String obtainReplacementText(String inputText) throws IOException, InterruptedException {
-        return client.callCodeFunction("add-comments", inputText);
+    protected ServiceClient.StreamedResponse generateResponse(String code) throws IOException {
+        return client.callCodeFunctionStreamed("add-docstrings", code);
     }
 }

@@ -61,7 +61,12 @@
     </action>
     <action id="de.appliedai.autodev.improveCodeAction" class="de.appliedai.autodev.actions.ImproveCodeAction" text="Improve Code"
             icon="/autodev/icon.png"
-            description="Attempts to replaces the selected code with an improved version, comments indicating the improvements">
+            description="Writes and improved version of the selected code, comments indicating the improvements">
+      <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
+    </action>
+    <action id="de.appliedai.autodev.inputChecksAction" class="de.appliedai.autodev.actions.InputChecksAction" text="Add Input Checks"
+            icon="/autodev/icon.png"
+            description="Adds input checks for the selected function (header)">
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
     </action>
   </actions>

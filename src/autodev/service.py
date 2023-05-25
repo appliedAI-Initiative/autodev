@@ -7,7 +7,7 @@ import sys
 from flask import Flask, request
 
 from autodev.code_functions import CodeFunction, ReviewFunction, ImproveCodeFunction, ExplainCodeFunction, \
-    ImplementTestsFunction, AddDocstringsFunction, PotentialProblemsFunction
+    ImplementTestsFunction, AddDocstringsFunction, PotentialProblemsFunction, InputChecksFunction
 from autodev.llm import LLMType
 from autodev.stream_formatting import StreamHtmlFormatter
 
@@ -16,16 +16,19 @@ class Service:
     def __init__(self, llm_type: LLMType):
         self.app = Flask("AutoDev")
         self.sllm = llm = llm_type.create_streaming_llm()
-        self._add_code_function("/fn/add-comments", AddDocstringsFunction(llm))
+        self._add_code_function("/fn/add-docstrings", AddDocstringsFunction(llm))
         self._add_code_function("/fn/potential-problems", PotentialProblemsFunction(llm), html=True)
         self._add_code_function("/fn/review", ReviewFunction(llm), html=True)
         self._add_code_function("/fn/improve-code", ImproveCodeFunction(llm))
         self._add_code_function("/fn/explain", ExplainCodeFunction(llm), html=True)
         self._add_code_function("/fn/implement-tests", ImplementTestsFunction(llm))
+        self._add_streaming_code_function("/fn/stream/add-docstrings", AddDocstringsFunction(llm), html=False)
         self._add_streaming_code_function("/fn/stream/potential-problems", PotentialProblemsFunction(llm), html=True)
         self._add_streaming_code_function("/fn/stream/review", ReviewFunction(llm), html=True)
+        self._add_streaming_code_function("/fn/stream/improve-code", ImproveCodeFunction(llm), html=False)
         self._add_streaming_code_function("/fn/stream/explain", ExplainCodeFunction(llm), html=True)
         self._add_streaming_code_function("/fn/stream/implement-tests", ImplementTestsFunction(llm), html=False)
+        self._add_streaming_code_function("/fn/stream/input-checks", InputChecksFunction(llm), html=False)
 
     @staticmethod
     def _format_html(response: str) -> str:

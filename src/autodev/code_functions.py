@@ -85,7 +85,7 @@ class InputChecksFunction(CodeFunction):
     PROMPT_TEMPLATE = \
         "Please write code that checks the inputs for the function in the code that follows.\n" \
         "{code}\n\n" \
-        "Code for checking the inputs:"
+        "Please respond with the input checking code only."
 
     def generate_prompt(self, code: str) -> str:
         return self.PROMPT_TEMPLATE.format(code=code)
