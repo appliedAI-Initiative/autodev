@@ -15,6 +15,7 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.io.*;
+import java.util.Arrays;
 
 public class AutoDevToolWindowManager {
     private static final String toolWindowId = "AutoDev";
@@ -48,10 +49,11 @@ public class AutoDevToolWindowManager {
             InputStream is = response.getInputStream();
             try(response) {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
-                char[] buf = new char[1];
+                char[] buf = new char[1024];
                 int numCharsRead;
                 while ((numCharsRead = bufferedReader.read(buf)) != -1) {
-                    toolWindowContent.append(String.valueOf(buf));
+                    String addedContent = String.valueOf(Arrays.copyOfRange(buf, 0, numCharsRead));
+                    toolWindowContent.append(addedContent);
                 }
             }
             catch (Throwable t) {
