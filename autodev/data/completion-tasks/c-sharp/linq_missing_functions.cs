@@ -7,7 +7,7 @@ public class EmployeeAnalysis
 {
 	public static void Main()
 	{
-        // Example data
+                // Example data
 		IList<Employee> employees = new List<Employee>() {
 			new Employee() { EmployeeID = 15, EmployeeName = "Alice", Age = 15 } ,
 				new Employee() { EmployeeID = 12, EmployeeName = "Bob",  Age = 21 } ,
@@ -17,16 +17,7 @@ public class EmployeeAnalysis
 		};
 
 		var adultEmployeeNames = GetAdultEmployeeNames(employees); // Adults are over the age of 18 (inclusive).
-		foreach(var name in adultEmployeeNames)
-		{
-			Console.WriteLine(name);
-		}
-
 		var oldestEmployee = GetOldestEmployee(employees);
-	    foreach(var name in oldestEmployee)
-		{
-			Console.WriteLine(name);
-		}
 	}
 
 	<todo>
