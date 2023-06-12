@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import sys
 from pathlib import Path
 from typing import Dict, List
 
@@ -125,12 +124,3 @@ class CompletionTaskModelComparison:
 
             del model
             del pipe
-
-
-if __name__ == '__main__':
-    logging.basicConfig(format='%(levelname)-5s %(asctime)-15s %(name)s:%(funcName)s - %(message)s', stream=sys.stdout,
-        level=logging.INFO)
-    log.info("Starting")
-    CompletionTaskModelComparison("ruby", models=["checkpoints/checkpoint-6000", "checkpoints/checkpoint-500", "bigcode/santacoder"])
-    #CompletionTaskModelComparison("c-sharp", models=["bigcode/santacoder"])
-    log.info("Done")
