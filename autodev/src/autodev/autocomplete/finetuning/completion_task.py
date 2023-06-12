@@ -1,12 +1,15 @@
+import collections
 import logging
 import os
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 
 import torch
 from transformers import pipeline
 
+from completionft.completion_report import CompletionsHtmlDocument
 from completionft.model import model_id_to_fn, ModelFactory
 
 log = logging.getLogger(__name__)
@@ -93,7 +96,7 @@ class CompletionTaskModelComparison:
                 tasks[fn] = CompletionTask.from_code_with_todo_tag(code, lang_id)
         return tasks
 
-    def run(self, save_results=True):
+    def run(self, save_results=True, save_html_report=True):
         tasks = self.completion_tasks
         tokenizer = self.model_factory.create_tokenizer()
 
@@ -102,6 +105,7 @@ class CompletionTaskModelComparison:
             outdir.mkdir(parents=True, exist_ok=True)
             return outdir
 
+        completions = collections.defaultdict(dict)
         for model_id in self.model_paths:
 
             log.info(f"Loading model {model_id}")
@@ -119,7 +123,9 @@ class CompletionTaskModelComparison:
                 prompt = task.fim_prompt()
                 response = pipe(prompt)[0]["generated_text"]
                 task.apply_completion(response)
-                log.info(f"Completion for {task_name} by {model_id}:\n{task.full_code()}")
+                completion = task.full_code()
+                log.info(f"Completion for {task_name} by {model_id}:\n{completion}")
+                completions[task_name][model_id] = completion
 
                 if save_results:
                     fn = model_id_to_fn(model_id) + ext
@@ -128,3 +134,13 @@ class CompletionTaskModelComparison:
 
             del model
             del pipe
+
+        if save_html_report:
+            html = CompletionsHtmlDocument(self.lang_id)
+            for task_name, task in tasks.items():
+                html.add_task(task_name, task.code_with_todo_tag(), completions[task_name])
+            html.finish()
+            outdir = Path("results") / "completion-tasks" / self.lang_id
+            outdir.mkdir(parents=True, exist_ok=True)
+            tag = datetime.now().strftime('%Y%m%d-%H%M%S')
+            html.write_html(outdir / f"results-{tag}.html")
