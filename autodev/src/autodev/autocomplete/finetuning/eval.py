@@ -1,6 +1,5 @@
 import logging
 import multiprocessing
-import sys
 from typing import Sequence
 
 import pandas as pd
@@ -9,19 +8,19 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 
 from completionft.dataset import load_train_val_datasets
-from infer_example_completions import get_model
+from completionft.model import get_model
 
 log = logging.getLogger(__name__)
 
 
-class ModelEvaluation:
+class ModelPerplexityEvaluation:
     def __init__(self, lang_id: str, models: Sequence[str], device="cuda:0", max_num_code_snippets=100):
         self.lang_id = lang_id
         self.model_paths = models
         self.device = device
         self.max_num_code_snippets = max_num_code_snippets
 
-    def run(self):
+    def run(self) -> pd.DataFrame:
         log.info("Loading dataset")
         _, dataset = load_train_val_datasets("bigcode/the-stack-dedup", f"data/{self.lang_id}",
             num_workers=multiprocessing.cpu_count())
@@ -78,18 +77,4 @@ class ModelEvaluation:
         df = pd.DataFrame(rows)
         df.sort_values("ppl", ascending=True, inplace=True)
         log.info(f"Results:\n{df.to_string()}")
-
-
-if __name__ == '__main__':
-    logging.basicConfig(format='%(levelname)-5s %(asctime)-15s %(name)s:%(funcName)s - %(message)s', stream=sys.stdout,
-        level=logging.INFO)
-    ruby_models = [
-        "checkpoints/ruby-lora16-fp32/checkpoint-3500",
-        "checkpoints/ruby-lora64-fp32/checkpoint-3000",
-        "checkpoints/ruby/checkpoint-3000",
-        "checkpoints/ruby/checkpoint-500",
-        "checkpoints/ruby/checkpoint-1000",
-        "checkpoints/ruby/checkpoint-2000",
-        "bigcode/santacoder"
-    ]
-    ModelEvaluation("ruby", ruby_models).run()
+        return df
