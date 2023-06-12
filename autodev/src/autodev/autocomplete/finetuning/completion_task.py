@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import Dict, List
 
 import torch
-from transformers import pipeline, AutoTokenizer
+from transformers import pipeline
 
-from completionft.model import get_model, model_id_to_fn
+from completionft.model import model_id_to_fn, ModelFactory
 
 log = logging.getLogger(__name__)
 
@@ -66,18 +66,22 @@ class CompletionTask:
 
 
 class CompletionTaskModelComparison:
-    def __init__(self, lang_id: str, models: List[str], device="cuda:0", base_model_id="bigcode/santacoder"):
+    def __init__(self,
+            lang_id: str,
+            model_factory: ModelFactory,
+            model_paths: List[str],
+            device="cuda:0"):
         """
         :param lang_id: the language id for which to load the completion tasks
-        :param models: the list of model names/paths
+        :param model_factory: the factory with which to create models
+        :param model_paths: paths with which to call model_factory in order to obtain the concrete models
         :param device: the torch device to use
-        :param base_model_id: the name/identifier of the base model
         """
         self.lang_id = lang_id
         self.completion_tasks = self._read_completion_tasks(lang_id)
-        self.base_model_id = base_model_id
+        self.model_factory = model_factory
         self.device = device
-        self.models = models
+        self.model_paths = model_paths
 
     @staticmethod
     def _read_completion_tasks(lang_id) -> Dict[str, CompletionTask]:
@@ -91,17 +95,17 @@ class CompletionTaskModelComparison:
 
     def run(self, save_results=True):
         tasks = self.completion_tasks
-        tokenizer = AutoTokenizer.from_pretrained(self.base_model_id, trust_remote_code=True)
+        tokenizer = self.model_factory.create_tokenizer()
 
         def result_dir(task_name):
             outdir = Path("results") / "completion-tasks" / self.lang_id / task_name
             outdir.mkdir(parents=True, exist_ok=True)
             return outdir
 
-        for model_id in self.models:
+        for model_id in self.model_paths:
 
             log.info(f"Loading model {model_id}")
-            model = get_model(model_id, self.base_model_id)
+            model = self.model_factory.create_model(model_id)
             pipe = pipeline("text-generation", model=model, max_new_tokens=256, device=self.device,
                 torch_dtype=torch.bfloat16, trust_remote_code=True, tokenizer=tokenizer)
 

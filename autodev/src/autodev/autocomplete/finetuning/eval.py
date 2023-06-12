@@ -8,15 +8,27 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 
 from completionft.dataset import load_train_val_datasets
-from completionft.model import get_model
+from completionft.model import ModelFactory
 
 log = logging.getLogger(__name__)
 
 
 class ModelPerplexityEvaluation:
-    def __init__(self, lang_id: str, models: Sequence[str], device="cuda:0", max_num_code_snippets=100):
+    def __init__(self, lang_id: str,
+            model_factory: ModelFactory,
+            model_paths: Sequence[str],
+            device="cuda:0",
+            max_num_code_snippets=100):
+        """
+        :param lang_id: a language identifier (subfolder of data/ in bigcode/the-stack-dedup)
+        :param model_factory: the factory with which to create models
+        :param model_paths: paths with which to call model_factory in order to obtain the concrete models
+        :param device: the device onto which to load the models/data
+        :param max_num_code_snippets: the maximum number of code snippets/files to use for evaluation
+        """
         self.lang_id = lang_id
-        self.model_paths = models
+        self.model_factory = model_factory
+        self.model_paths = model_paths
         self.device = device
         self.max_num_code_snippets = max_num_code_snippets
 
@@ -35,7 +47,7 @@ class ModelPerplexityEvaluation:
         rows = []
         for model_path in self.model_paths:
             log.info(f"Loading model {model_path}")
-            model = get_model(model_path, base_model_id)
+            model = self.model_factory.create_model(model_path)
             model.to(self.device)
 
             max_length = model.config.n_positions
