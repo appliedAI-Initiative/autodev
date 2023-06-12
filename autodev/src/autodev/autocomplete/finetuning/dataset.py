@@ -8,7 +8,7 @@ from datasets import load_dataset, Dataset
 from torch.utils.data import IterableDataset
 from tqdm import tqdm
 
-import fim
+from . import fim
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class ConstantLengthDataset(IterableDataset):
     """
     Iterable dataset that returns constant length chunks of tokens from stream of text files.
         Args:
-            cfg (FineTuningConfiguration): the configuration
+            concat_token_id: the identifier of the token with which to connect content from different source files
             tokenizer (Tokenizer): The processor used for proccessing the data.
             dataset (dataset.Dataset): Dataset with text files.
             infinite (bool): If True the iterator is reset after dataset reaches end else stops.
