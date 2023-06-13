@@ -38,12 +38,14 @@ class CompletionTask:
         completion = s[m.end():]
 
         # truncate completion depending on lang_id
-        if self.lang_id == "ruby":  # end completion after first occurrence of 'end'
-            m = re.search(r"end\n", completion)
-            if m:
-                completion = completion[:m.end()]
-                if self.suffix.startswith("\n"):
-                    completion = completion[:-1]
+        if self.lang_id == "ruby":
+            # if next line of suffix is an 'end' line, end completion before respective 'end'
+            suffix_lines = self.suffix.split("\n")
+            if len(suffix_lines) >= 2 and suffix_lines[1].strip() == "end":
+                end_line = suffix_lines[1].rstrip() + "\n"
+                m = re.search(r"^" + re.escape(end_line), completion, re.MULTILINE)
+                if m:
+                    completion = completion[:m.start()-1]
 
         return completion
 
