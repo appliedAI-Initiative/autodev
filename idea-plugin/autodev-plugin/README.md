@@ -1,5 +1,6 @@
-To build the Tabnine dependencies, use branch `v109` of the tabnine-intellij,
-and in folders `Common` and `Tabnine` run
+To build the Tabnine dependencies, checkout branch `v1.0.9-autodev` from
+[here](https://github.com/opcode81/tabnine-intellij/tree/v1.0.9-autodev).
+Then, in folders `Common` and `Tabnine`, run
 
      ..\gradlew -x test build publishToMavenLocal
 
