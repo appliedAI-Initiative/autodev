@@ -9,10 +9,13 @@ version = "1.0-SNAPSHOT"
 
 repositories {
   mavenCentral()
+  mavenLocal()
 }
 
 dependencies {
   implementation("org.apache.httpcomponents:httpcomponents-client:4.5.14")
+  implementation("com.tabnineCommon:Common:1.0.9")
+  implementation("com.tabnine:Tabnine:1.0.9")
 }
 
 // Configure Gradle IntelliJ Plugin
