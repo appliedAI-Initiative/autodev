@@ -1,8 +1,4 @@
-package com.tabnineCommon.inline;
-
-import static com.intellij.openapi.editor.EditorModificationUtil.checkModificationAllowed;
-import static com.tabnineCommon.general.DependencyContainer.instanceOfSuggestionsModeService;
-import static com.tabnineCommon.general.DependencyContainer.singletonOfInlineCompletionHandler;
+package de.appliedai.autodev.autocomplete;
 
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -19,19 +15,29 @@ import com.tabnineCommon.capabilities.SuggestionsModeService;
 import com.tabnineCommon.general.CompletionsEventSender;
 import com.tabnineCommon.general.DependencyContainer;
 import com.tabnineCommon.general.EditorUtils;
+import com.tabnineCommon.inline.*;
 import com.tabnineCommon.prediction.TabNineCompletion;
-import java.awt.*;
+import de.appliedai.autodev.TempLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+
+import static com.intellij.openapi.editor.EditorModificationUtil.checkModificationAllowed;
+import static com.tabnineCommon.general.DependencyContainer.instanceOfSuggestionsModeService;
+import static com.tabnineCommon.general.DependencyContainer.singletonOfInlineCompletionHandler;
 
 public class TabnineDocumentListener implements BulkAwareDocumentListener {
   private final InlineCompletionHandler handler = singletonOfInlineCompletionHandler();
   private final SuggestionsModeService suggestionsModeService = instanceOfSuggestionsModeService();
   private final CompletionsEventSender completionsEventSender =
-          DependencyContainer.instanceOfCompletionsEventSender();
+      DependencyContainer.instanceOfCompletionsEventSender();
+
+  private final TempLogger log = TempLogger.getInstance(TabnineDocumentListener.class);
 
   @Override
   public void documentChangedNonBulk(@NotNull DocumentEvent event) {
+    log.info("Document changed: start");
     Document document = event.getDocument();
     Editor editor = getActiveEditor(document);
 
@@ -39,6 +45,7 @@ public class TabnineDocumentListener implements BulkAwareDocumentListener {
       return;
     }
 
+    log.info("Document changed: getting last shown completion");
     TabNineCompletion lastShownCompletion = CompletionPreview.getCurrentCompletion(editor);
 
     CompletionPreview.clear(editor);
@@ -46,20 +53,22 @@ public class TabnineDocumentListener implements BulkAwareDocumentListener {
     int offset = event.getOffset() + event.getNewLength();
 
     if (shouldIgnoreChange(event, editor, offset, lastShownCompletion)) {
+      log.info("Document changed: ingoring change");
       InlineCompletionCache.getInstance().clear(editor);
       return;
     }
 
+    log.info("Document changed: retrieve and show completion");
     handler.retrieveAndShowCompletion(
-            editor,
-            offset,
-            lastShownCompletion,
-            event.getNewFragment().toString(),
-            new DefaultCompletionAdjustment());
+        editor,
+        offset,
+        lastShownCompletion,
+        event.getNewFragment().toString(),
+        new DefaultCompletionAdjustment());
   }
 
   private boolean shouldIgnoreChange(
-          DocumentEvent event, Editor editor, int offset, TabNineCompletion lastShownCompletion) {
+      DocumentEvent event, Editor editor, int offset, TabNineCompletion lastShownCompletion) {
     Document document = event.getDocument();
 
     if (!suggestionsModeService.getSuggestionMode().isInlineEnabled()) {
@@ -68,12 +77,12 @@ public class TabnineDocumentListener implements BulkAwareDocumentListener {
 
     if (event.getNewLength() < 1) {
       completionsEventSender.sendSuggestionDropped(
-              editor, lastShownCompletion, SuggestionDroppedReason.TextDeletion);
+          editor, lastShownCompletion, SuggestionDroppedReason.TextDeletion);
       return true;
     }
 
     if (!editor.getEditorKind().equals(EditorKind.MAIN_EDITOR)
-            && !ApplicationManager.getApplication().isUnitTestMode()) {
+        && !ApplicationManager.getApplication().isUnitTestMode()) {
       return true;
     }
 
@@ -96,9 +105,9 @@ public class TabnineDocumentListener implements BulkAwareDocumentListener {
     DataContext dataContext = DataManager.getInstance().getDataContext(focusOwner);
     // ignore caret placing when exiting
     Editor activeEditor =
-            ApplicationManager.getApplication().isDisposed()
-                    ? null
-                    : CommonDataKeys.EDITOR.getData(dataContext);
+        ApplicationManager.getApplication().isDisposed()
+            ? null
+            : CommonDataKeys.EDITOR.getData(dataContext);
 
     if (activeEditor != null && activeEditor.getDocument() != document) {
       activeEditor = null;

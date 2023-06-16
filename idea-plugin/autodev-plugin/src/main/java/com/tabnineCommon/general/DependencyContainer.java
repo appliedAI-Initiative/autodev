@@ -52,8 +52,8 @@ public class DependencyContainer {
 
   @NotNull
   public static CompletionFacade instanceOfCompletionFacade() {
-    return new CompletionFacade(
-        instanceOfBinaryRequestFacade(), instanceOfSuggestionsModeService());
+    //return new CompletionFacade(instanceOfBinaryRequestFacade(), instanceOfSuggestionsModeService());
+    return new CompletionFacade(null, instanceOfSuggestionsModeService());
   }
 
   public static void setTesting(

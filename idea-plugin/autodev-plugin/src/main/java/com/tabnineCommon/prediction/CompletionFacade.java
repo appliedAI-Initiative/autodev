@@ -1,7 +1,5 @@
 package com.tabnineCommon.prediction;
 
-import static com.tabnineCommon.general.StaticConfig.*;
-
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.openapi.application.ex.ApplicationUtil;
 import com.intellij.openapi.editor.Document;
@@ -15,31 +13,31 @@ import com.tabnineCommon.binary.BinaryRequestFacade;
 import com.tabnineCommon.binary.exceptions.BinaryCannotRecoverException;
 import com.tabnineCommon.binary.requests.autocomplete.AutocompleteRequest;
 import com.tabnineCommon.binary.requests.autocomplete.AutocompleteResponse;
+import com.tabnineCommon.binary.requests.autocomplete.ResultEntry;
 import com.tabnineCommon.capabilities.SuggestionsModeService;
 import com.tabnineCommon.inline.CompletionAdjustment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.tabnineCommon.general.StaticConfig.*;
+
 public class CompletionFacade {
-  private final BinaryRequestFacade binaryRequestFacade;
   private final SuggestionsModeService suggestionsModeService;
 
-  public CompletionFacade(
-          BinaryRequestFacade binaryRequestFacade, SuggestionsModeService suggestionsModeService) {
-    this.binaryRequestFacade = binaryRequestFacade;
+  public CompletionFacade(BinaryRequestFacade b, SuggestionsModeService suggestionsModeService) {
     this.suggestionsModeService = suggestionsModeService;
   }
 
   @Nullable
   public AutocompleteResponse retrieveCompletions(
-          CompletionParameters parameters, @Nullable Integer tabSize) {
+      CompletionParameters parameters, @Nullable Integer tabSize) {
     try {
       String filename = getFilename(parameters.getOriginalFile().getVirtualFile());
       return ApplicationUtil.runWithCheckCanceled(
-              () ->
-                      retrieveCompletions(
-                              parameters.getEditor(), parameters.getOffset(), filename, tabSize, null),
-              ProgressManager.getInstance().getProgressIndicator());
+          () ->
+              retrieveCompletions(
+                  parameters.getEditor(), parameters.getOffset(), filename, tabSize, null),
+          ProgressManager.getInstance().getProgressIndicator());
     } catch (BinaryCannotRecoverException e) {
       throw e;
     } catch (Exception e) {
@@ -49,13 +47,13 @@ public class CompletionFacade {
 
   @Nullable
   public AutocompleteResponse retrieveCompletions(
-          @NotNull Editor editor,
-          int offset,
-          @Nullable Integer tabSize,
-          @Nullable CompletionAdjustment completionAdjustment) {
+      @NotNull Editor editor,
+      int offset,
+      @Nullable Integer tabSize,
+      @Nullable CompletionAdjustment completionAdjustment) {
     try {
       String filename =
-              getFilename(FileDocumentManager.getInstance().getFile(editor.getDocument()));
+          getFilename(FileDocumentManager.getInstance().getFile(editor.getDocument()));
       return retrieveCompletions(editor, offset, filename, tabSize, completionAdjustment);
     } catch (BinaryCannotRecoverException e) {
       throw e;
@@ -71,11 +69,11 @@ public class CompletionFacade {
 
   @Nullable
   private AutocompleteResponse retrieveCompletions(
-          @NotNull Editor editor,
-          int offset,
-          @Nullable String filename,
-          @Nullable Integer tabSize,
-          @Nullable CompletionAdjustment completionAdjustment) {
+      @NotNull Editor editor,
+      int offset,
+      @Nullable String filename,
+      @Nullable Integer tabSize,
+      @Nullable CompletionAdjustment completionAdjustment) {
     Document document = editor.getDocument();
 
     int begin = Integer.max(0, offset - MAX_OFFSET);
@@ -96,8 +94,19 @@ public class CompletionFacade {
       completionAdjustment.adjustRequest(req);
     }
 
+    /*
     AutocompleteResponse autocompleteResponse =
-            binaryRequestFacade.executeRequest(req, determineTimeoutBy(req.before));
+        binaryRequestFacade.executeRequest(req, determineTimeoutBy(req.before));
+     */
+    AutocompleteResponse response = new AutocompleteResponse();
+    response.old_prefix = "";
+    var entry = new ResultEntry();
+    entry.new_prefix = "FOOBAR"; //resultSet.getPrefixMatcher().getPrefix();
+    entry.old_suffix = "";
+    entry.new_suffix = "foobar";
+    response.results = new ResultEntry[]{entry};
+
+    AutocompleteResponse autocompleteResponse = response;
 
     if (completionAdjustment != null) {
       completionAdjustment.adjustResponse(autocompleteResponse);

@@ -21,6 +21,7 @@ import com.tabnineCommon.inline.render.GraphicsUtilsKt;
 import com.tabnineCommon.intellij.completions.CompletionUtils;
 import com.tabnineCommon.prediction.CompletionFacade;
 import com.tabnineCommon.prediction.TabNineCompletion;
+import de.appliedai.autodev.TempLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,8 @@ public class InlineCompletionHandler {
   private Future<?> lastFetchAndRenderTask = null;
   private Future<?> lastFetchInBackgroundTask = null;
 
+  private final TempLogger log = TempLogger.getInstance(InlineCompletionHandler.class);
+
   public InlineCompletionHandler(
       CompletionFacade completionFacade,
       BinaryRequestFacade binaryRequestFacade,
@@ -63,10 +66,12 @@ public class InlineCompletionHandler {
       @NotNull CompletionAdjustment completionAdjustment) {
     Integer tabSize = GraphicsUtilsKt.getTabSize(editor);
 
+    log.info("cancel");
     ObjectUtils.doIfNotNull(lastFetchInBackgroundTask, task -> task.cancel(false));
     ObjectUtils.doIfNotNull(lastFetchAndRenderTask, task -> task.cancel(false));
     ObjectUtils.doIfNotNull(lastDebounceRenderTask, task -> task.cancel(false));
 
+    log.info("retrieve adjusted completions");
     List<TabNineCompletion> cachedCompletions =
         InlineCompletionCache.getInstance().retrieveAdjustedCompletions(editor, userInput);
     if (!cachedCompletions.isEmpty()) {
@@ -75,6 +80,7 @@ public class InlineCompletionHandler {
     }
 
     if (lastShownSuggestion != null) {
+      log.info("send suggestion dropped");
       SuggestionDroppedReason reason =
           completionAdjustment instanceof LookAheadCompletionAdjustment
               ? SuggestionDroppedReason.ScrollLookAhead
@@ -87,13 +93,16 @@ public class InlineCompletionHandler {
 
     ApplicationManager.getApplication()
         .invokeLater(
-            () ->
+            () -> {
+                log.info("renderNewCompletions");
                 renderNewCompletions(
                     editor,
                     tabSize,
                     getCurrentEditorOffset(editor, userInput),
                     editor.getDocument().getModificationStamp(),
-                    completionAdjustment));
+                    completionAdjustment);
+            });
+
   }
 
   private void renderCachedCompletions(
@@ -122,12 +131,15 @@ public class InlineCompletionHandler {
     lastFetchAndRenderTask =
         executeThread(
             () -> {
-              CompletionTracker.updateLastCompletionRequestTime(editor);
+              log.info("update last completion request");
+              //TODO CompletionTracker.updateLastCompletionRequestTime(editor);
+              log.info("retrieve inline completion");
               List<TabNineCompletion> beforeDebounceCompletions =
                   retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment);
-              long debounceTime = CompletionTracker.calcDebounceTime(editor, completionAdjustment);
-
+              long debounceTime = 0; //TODO CompletionTracker.calcDebounceTime(editor, completionAdjustment);
+              log.info("debounce time: " + debounceTime);
               if (debounceTime == 0) {
+                log.info("renderCompletion");
                 rerenderCompletion(
                     editor,
                     beforeDebounceCompletions,
@@ -137,6 +149,7 @@ public class InlineCompletionHandler {
                 return;
               }
 
+              log.info("refetchCompletionsAfterDebounce");
               refetchCompletionsAfterDebounce(
                   editor, tabSize, offset, modificationStamp, completionAdjustment, debounceTime);
             });
@@ -167,6 +180,7 @@ public class InlineCompletionHandler {
       int offset,
       long modificationStamp,
       @NotNull CompletionAdjustment completionAdjustment) {
+    log.info("rerenderCompletion");
     ApplicationManager.getApplication()
         .invokeLater(
             () -> {
