@@ -16,16 +16,22 @@ import com.tabnineCommon.binary.requests.autocomplete.AutocompleteResponse;
 import com.tabnineCommon.binary.requests.autocomplete.ResultEntry;
 import com.tabnineCommon.capabilities.SuggestionsModeService;
 import com.tabnineCommon.inline.CompletionAdjustment;
+import de.appliedai.autodev.ServiceClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
+import java.util.HashMap;
 
 import static com.tabnineCommon.general.StaticConfig.*;
 
 public class CompletionFacade {
   private final SuggestionsModeService suggestionsModeService;
+  private final ServiceClient serviceClient;
 
   public CompletionFacade(BinaryRequestFacade b, SuggestionsModeService suggestionsModeService) {
     this.suggestionsModeService = suggestionsModeService;
+    this.serviceClient = new ServiceClient();
   }
 
   @Nullable
@@ -94,19 +100,39 @@ public class CompletionFacade {
       completionAdjustment.adjustRequest(req);
     }
 
-    /*
-    AutocompleteResponse autocompleteResponse =
-        binaryRequestFacade.executeRequest(req, determineTimeoutBy(req.before));
-     */
-    AutocompleteResponse response = new AutocompleteResponse();
-    response.old_prefix = "";
-    var entry = new ResultEntry();
-    entry.new_prefix = "FOOBAR"; //resultSet.getPrefixMatcher().getPrefix();
-    entry.old_suffix = "";
-    entry.new_suffix = "foobar";
-    response.results = new ResultEntry[]{entry};
+    boolean useDummyResponse = false;
 
-    AutocompleteResponse autocompleteResponse = response;
+    AutocompleteResponse autocompleteResponse;
+    if (useDummyResponse) {
+      AutocompleteResponse response = new AutocompleteResponse();
+      response.old_prefix = "";
+      var entry = new ResultEntry();
+      entry.new_prefix = "prefix"; //resultSet.getPrefixMatcher().getPrefix();
+      entry.old_suffix = "";
+      entry.new_suffix = "Suffix";
+      response.results = new ResultEntry[]{entry};
+
+      autocompleteResponse = response;
+    }
+    else {
+      String middle;
+      try {
+        middle = serviceClient.callAutoComplete(req.before, req.after);
+      } catch (Exception e) {
+        System.err.println("Exception in service client: " + e);
+        throw new RuntimeException(e);
+      }
+
+      AutocompleteResponse response = new AutocompleteResponse();
+      response.old_prefix = "";
+      var entry = new ResultEntry();
+      entry.new_prefix = middle; //resultSet.getPrefixMatcher().getPrefix();
+      entry.old_suffix = "";
+      entry.new_suffix = middle;
+      response.results = new ResultEntry[]{entry};
+
+      autocompleteResponse = response;
+    }
 
     if (completionAdjustment != null) {
       completionAdjustment.adjustResponse(autocompleteResponse);

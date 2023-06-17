@@ -117,6 +117,13 @@ public class ServiceClient {
         return post(URI.create(serviceUrl + "fn/" + fn), data);
     }
 
+    public String callAutoComplete(String prefix, String suffix) throws IOException, InterruptedException {
+        HashMap<Object, Object> data = new HashMap<>();
+        data.put("prefix", prefix);
+        data.put("suffix", suffix);
+        return post(URI.create(serviceUrl + "autocomplete"), data);
+    }
+
     public StreamedResponse callCodeFunctionStreamed(String fn, String code) throws IOException {
         HashMap<String, String> data = new HashMap<>();
         data.put("code", code);
