@@ -7,7 +7,7 @@ import logging
 import os
 from pathlib import Path
 
-from completionft.completion_task import TAG_COMPLETION_PLACEHOLDER
+from completionft.completion_task import CompletionTask
 from completionft.model import model_id_from_fn
 
 log = logging.getLogger(__name__)
@@ -60,8 +60,8 @@ class CompletionsHtmlDocument:
     def add_task(self, task_name, task_description: str, completions: dict[str, str]):
         self.html += f"<h2>{task_name}</h2>"
 
-        if TAG_COMPLETION_PLACEHOLDER in task_description:
-            task_description = task_description.replace(TAG_COMPLETION_PLACEHOLDER,
+        if CompletionTask.TAG_COMPLETION_PLACEHOLDER in task_description:
+            task_description = task_description.replace(CompletionTask.TAG_COMPLETION_PLACEHOLDER,
                 '<span class="placeholder">&lt;todo&gt;</span>')
         self.html += f'<h3>Task</h3><div class="code task">{task_description}</div>'
 

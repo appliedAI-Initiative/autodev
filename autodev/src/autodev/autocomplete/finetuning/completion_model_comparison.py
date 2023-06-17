@@ -5,9 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 
-import torch
-from transformers import pipeline
-
+from completionft.completion_model import CompletionModel
 from completionft.completion_report import CompletionsHtmlDocument
 from completionft.completion_task import CompletionTask
 from completionft.model import model_id_to_fn, ModelFactory
@@ -57,8 +55,7 @@ class CompletionTaskModelComparison:
 
             log.info(f"Loading model {model_id}")
             model = self.model_factory.create_model(model_id)
-            pipe = pipeline("text-generation", model=model, max_new_tokens=256, device=self.device,
-                torch_dtype=torch.bfloat16, trust_remote_code=True, tokenizer=tokenizer)
+            completion_model = CompletionModel(model, tokenizer, device=self.device)
 
             for task_name, task in tasks.items():
                 ext = os.path.splitext(task_name)[1]
@@ -67,20 +64,18 @@ class CompletionTaskModelComparison:
                         f.write(task.code_with_todo_tag())
 
                 log.info(f"Querying {model_id} for completion {task_name}")
-                prompt = task.fim_prompt()
-                response = pipe(prompt)[0]["generated_text"]
-                task.apply_completion(response)
-                completion = task.full_code()
-                log.info(f"Completion for {task_name} by {model_id}:\n{completion}")
-                completions[task_name][model_id] = completion
+                result = completion_model.apply(task)
+                completed_code = result.full_code()
+                log.info(f"Completion for {task_name} by {model_id}:\n{completed_code}")
+                completions[task_name][model_id] = completed_code
 
                 if save_results:
                     fn = model_id_to_fn(model_id) + ext
                     with open(result_dir(task_name) / fn, 'w') as f:
-                        f.write(task.full_code())
+                        f.write(completed_code)
 
             del model
-            del pipe
+            del completion_model
 
         if save_html_report:
             html = CompletionsHtmlDocument(self.lang_id)
