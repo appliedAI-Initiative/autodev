@@ -25,8 +25,7 @@
   <!-- Extension points defined by the plugin.
        Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
   <extensions defaultExtensionNs="com.intellij">
-    <!--<preloadingActivity implementation="com.tabnine.Initializer"/>
-    <postStartupActivity implementation="com.tabnine.Initializer"/>-->
+    <applicationService serviceImplementation="com.tabnineCommon.capabilities.CapabilitiesService"/>
     <actionPromoter implementation="com.tabnineCommon.inline.InlineActionsPromoter"/>
     <editorActionHandler action="EditorEscape" implementationClass="com.tabnineCommon.inline.EscapeHandler"
                          id="previewEscape" order="before hide-hints"/>

@@ -39,14 +39,14 @@ import static com.tabnineCommon.general.StaticConfig.*;
 
 public class TabNineCompletionContributor extends CompletionContributor {
   private final CompletionFacade completionFacade =
-      null; //DependencyContainer.instanceOfCompletionFacade();
-  private final TabNineLookupListener tabNineLookupListener = null; //instanceOfTabNineLookupListener();
+      DependencyContainer.instanceOfCompletionFacade();
+  private final TabNineLookupListener tabNineLookupListener = instanceOfTabNineLookupListener();
   private final TabnineInlineLookupListener tabNineInlineLookupListener =
-      null; //DependencyContainer.instanceOfTabNineInlineLookupListener();
+      DependencyContainer.instanceOfTabNineInlineLookupListener();
   private final SuggestionsModeService suggestionsModeService =
-      null; //DependencyContainer.instanceOfSuggestionsModeService();
+      DependencyContainer.instanceOfSuggestionsModeService();
   private final CompletionsEventSender completionsEventSender =
-      null; //DependencyContainer.instanceOfCompletionsEventSender();
+      DependencyContainer.instanceOfCompletionsEventSender();
   private final MessageBus messageBus = ApplicationManager.getApplication().getMessageBus();
   private boolean isLocked;
 
@@ -60,37 +60,24 @@ public class TabNineCompletionContributor extends CompletionContributor {
   @Override
   public void fillCompletionVariants(
       @NotNull CompletionParameters parameters, @NotNull CompletionResultSet resultSet) {
-    System.out.println("fillCompletionVariants start");
     if (!EditorUtils.isMainEditor(parameters.getEditor())) {
       return;
     }
 
-    Logger.getInstance(TabNineCompletionContributor.class).info("Called fillCompletionVariants");
-
     if (!parameters.isAutoPopup()) {
-      //completionsEventSender.sendManualSuggestionTrigger(RenderingMode.AUTOCOMPLETE);
+      completionsEventSender.sendManualSuggestionTrigger(RenderingMode.AUTOCOMPLETE);
     }
 
-    boolean isInlineEnabled = true; //suggestionsModeService.getSuggestionMode().isInlineEnabled();
-    if (isInlineEnabled) {
-      //registerLookupListener(parameters, tabNineInlineLookupListener);
+    if (suggestionsModeService.getSuggestionMode().isInlineEnabled()) {
+      registerLookupListener(parameters, tabNineInlineLookupListener);
     }
-    boolean isPopupEnabled = false; //!suggestionsModeService.getSuggestionMode().isPopupEnabled();
-    if (isPopupEnabled) {
+    if (!suggestionsModeService.getSuggestionMode().isPopupEnabled()) {
       return;
     }
-    //registerLookupListener(parameters, tabNineLookupListener);
-
-    AutocompleteResponse response = new AutocompleteResponse();
-    response.old_prefix = resultSet.getPrefixMatcher().getPrefix();
-    var entry = new ResultEntry();
-    entry.new_prefix = "FOOAR"; //resultSet.getPrefixMatcher().getPrefix();
-    entry.old_suffix = "";
-    entry.new_suffix = "foobar";
-    response.results = new ResultEntry[]{entry};
-
-    AutocompleteResponse completions = response;
-        //this.completionFacade.retrieveCompletions(parameters, GraphicsUtilsKt.getTabSize(parameters.getEditor()));
+    registerLookupListener(parameters, tabNineLookupListener);
+    AutocompleteResponse completions =
+        this.completionFacade.retrieveCompletions(
+            parameters, GraphicsUtilsKt.getTabSize(parameters.getEditor()));
 
     if (completions == null) {
       return;
@@ -102,12 +89,10 @@ public class TabNineCompletionContributor extends CompletionContributor {
       return;
     }
 
-    /*
     if (suggestionsModeService.getSuggestionMode() == SuggestionsMode.HYBRID
         && Arrays.stream(completions.results).anyMatch(Completion::isSnippet)) {
       return;
     }
-    */
 
     if (this.isLocked != completions.is_locked) {
       this.isLocked = completions.is_locked;
@@ -128,15 +113,12 @@ public class TabNineCompletionContributor extends CompletionContributor {
     //addAdvertisement(resultSet, completions);
 
     resultSet.addAllElements(createCompletions(completions, parameters, resultSet));
-    System.out.println("fillCompletionVariants done");
   }
 
   private ArrayList<LookupElement> createCompletions(
       AutocompleteResponse completions,
       @NotNull CompletionParameters parameters,
       @NotNull CompletionResultSet resultSet) {
-
-    System.out.println("createCompletions start");
     ArrayList<LookupElement> elements = new ArrayList<>();
     final Lookup activeLookup = LookupManager.getActiveLookup(parameters.getEditor());
     for (int index = 0;
@@ -158,7 +140,6 @@ public class TabNineCompletionContributor extends CompletionContributor {
       }
     }
 
-    System.out.println("createCompletions done");
     return elements;
   }
 
@@ -170,8 +151,6 @@ public class TabNineCompletionContributor extends CompletionContributor {
       int index,
       boolean locked,
       @Nullable Lookup activeLookup) {
-
-    System.out.println("createCompletion start");
     TabNineCompletion completion =
         CompletionUtils.createTabnineCompletion(
             parameters.getEditor().getDocument(),
@@ -221,7 +200,6 @@ public class TabNineCompletionContributor extends CompletionContributor {
       lookupElementBuilder =
           lookupElementBuilder.withInsertHandler(
               (context, item) -> {
-                System.out.println("insert handler");
                 int end = context.getTailOffset();
                 TabNineCompletion lookupElement = (TabNineCompletion) item.getObject();
                 try {
@@ -230,8 +208,7 @@ public class TabNineCompletionContributor extends CompletionContributor {
                       .insertString(
                           end + lookupElement.oldSuffix.length(), lookupElement.newSuffix);
                   context.getDocument().deleteString(end, end + lookupElement.oldSuffix.length());
-                  boolean autoImportEnabled = false; //AppSettingsState.getInstance().getAutoImportEnabled();
-                  if (autoImportEnabled) {
+                  if (AppSettingsState.getInstance().getAutoImportEnabled()) {
                     Logger.getInstance(getClass()).info("Registering auto importer");
                     AutoImporter.registerTabNineAutoImporter(
                         context.getEditor(),
@@ -239,7 +216,6 @@ public class TabNineCompletionContributor extends CompletionContributor {
                         context.getStartOffset(),
                         context.getTailOffset());
                   }
-                  System.out.println("insert handler done");
                 } catch (RuntimeException re) {
                   Logger.getInstance(getClass())
                       .warn(
@@ -253,7 +229,6 @@ public class TabNineCompletionContributor extends CompletionContributor {
                 }
               });
     }
-    System.out.println("createCompletion done");
     return lookupElementBuilder;
   }
 
