@@ -6,6 +6,9 @@ import sys
 
 from flask import Flask, request
 
+from autodev.autocomplete.completion_model import CompletionModel
+from autodev.autocomplete.completion_task import CompletionTask
+from autodev.autocomplete.model import ModelFactory
 from autodev.code_functions import CodeFunction, ReviewFunction, ImproveCodeFunction, ExplainCodeFunction, \
     ImplementTestsFunction, AddDocstringsFunction, PotentialProblemsFunction, InputChecksFunction
 from autodev.llm import LLMType
@@ -13,8 +16,9 @@ from autodev.stream_formatting import StreamHtmlFormatter
 
 
 class Service:
-    def __init__(self, llm_type: LLMType):
+    def __init__(self, llm_type: LLMType, completion_model_factory: ModelFactory, completion_model_path: str, device):
         self.app = Flask("AutoDev")
+
         self.sllm = llm = llm_type.create_streaming_llm()
         self._add_code_function("/fn/add-docstrings", AddDocstringsFunction(llm))
         self._add_code_function("/fn/potential-problems", PotentialProblemsFunction(llm), html=True)
@@ -29,6 +33,10 @@ class Service:
         self._add_streaming_code_function("/fn/stream/explain", ExplainCodeFunction(llm), html=True)
         self._add_streaming_code_function("/fn/stream/implement-tests", ImplementTestsFunction(llm), html=False)
         self._add_streaming_code_function("/fn/stream/input-checks", InputChecksFunction(llm), html=False)
+
+        self.completion_model = CompletionModel(completion_model_factory.create_model(completion_model_path),
+            completion_model_factory.create_tokenizer(), device=device)
+        self._add_autocomplete("/autocomplete")
 
     @staticmethod
     def _format_html(response: str) -> str:
@@ -98,6 +106,24 @@ class Service:
             return self.app.response_class(generate(), mimetype=mimetype)
 
         handle.__name__ = "stream_" + fn.__class__.__name__
+        return self.app.add_url_rule(path, None, handle, methods=["POST"])
+
+    def _add_autocomplete(self, path):
+        def handle():
+            print(request)
+            print(request.form)
+            prefix = request.form.get("prefix")
+            suffix = request.form.get("suffix")
+
+            lang_id = "python"  # TODO
+
+            task = CompletionTask(prefix, suffix, lang_id)
+            result = self.completion_model.apply(task)
+            print(f"Completion:\n{result.completion}")
+
+            return result.completion
+
+        handle.__name__ = "autocomplete"
         return self.app.add_url_rule(path, None, handle, methods=["POST"])
 
     def run(self):
