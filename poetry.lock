@@ -2803,6 +2803,33 @@ qa = ["flake8 (==3.8.3)", "mypy (==0.782)"]
 testing = ["docopt", "pytest (<6.0.0)"]
 
 [[package]]
+name = "peft"
+version = "0.3.0"
+description = "Parameter-Efficient Fine-Tuning (PEFT)"
+category = "main"
+optional = false
+python-versions = ">=3.7.0"
+files = [
+    {file = "peft-0.3.0-py3-none-any.whl", hash = "sha256:824c2ba148febb743c70363e597dafb35d996e075956ad7bc36506f09fea0349"},
+    {file = "peft-0.3.0.tar.gz", hash = "sha256:bbdeee4de3653ee43cb6bbe7505816e6e9b4cf8275471be1707d9c253dfe8e0b"},
+]
+
+[package.dependencies]
+accelerate = "*"
+numpy = ">=1.17"
+packaging = ">=20.0"
+psutil = "*"
+pyyaml = "*"
+torch = ">=1.13.0"
+transformers = "*"
+
+[package.extras]
+dev = ["black (>=22.0,<23.0)", "hf-doc-builder", "ruff (>=0.0.241)"]
+docs-specific = ["hf-doc-builder"]
+quality = ["black (>=22.0,<23.0)", "ruff (>=0.0.241)"]
+test = ["black (>=22.0,<23.0)", "datasets", "hf-doc-builder", "parameterized", "pytest", "pytest-xdist", "ruff (>=0.0.241)"]
+
+[[package]]
 name = "pexpect"
 version = "4.8.0"
 description = "Pexpect allows easy control of interactive console applications."
@@ -4976,4 +5003,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "a1af7e5b7ec155e35a6157b1e0e768a2087ff4075de2f341f2120a0d0852e84c"
+content-hash = "5acc33b423918b40c415d9f89a1504aaadbd5e3670bf3cdd8edbafaf468ff59c"
