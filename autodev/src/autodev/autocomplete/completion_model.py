@@ -9,6 +9,7 @@ from .completion_task import CompletionTask, CompletionResult
 
 
 class CompletionModel:
+    DEBUG = False
     TAG_FIM_PREFIX = "<fim-prefix>"
     TAG_FIM_SUFFIX = "<fim-suffix>"
     TAG_FIM_MIDDLE = "<fim-middle>"
@@ -27,8 +28,14 @@ class CompletionModel:
     def fim_prompt(self, task: CompletionTask) -> str:
         return f"{self.TAG_FIM_PREFIX}{task.prefix}{self.TAG_FIM_SUFFIX}{task.suffix}{self.TAG_FIM_MIDDLE}"
 
-    def _extract_completion(self, s: str, task: CompletionTask) -> str:
-        m = self.re_fim_middle.search(s)
+    @classmethod
+    def _extract_completion(cls, s: str, task: CompletionTask) -> str:
+        if cls.DEBUG:
+            import pickle
+            with open("completion.pkl", "wb") as f:
+                pickle.dump({"task": task, "s": s}, f)
+
+        m = cls.re_fim_middle.search(s)
         if not m:
             return ""
         completion = s[m.end():]
