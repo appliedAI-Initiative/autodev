@@ -116,7 +116,7 @@ public class CompletionFacade {
     else {
       String middle;
       try {
-        middle = serviceClient.callAutoComplete(req.before, req.after);
+        middle = serviceClient.callAutoComplete(req.before, req.after, req.filename);
       } catch (Exception e) {
         System.err.println("Exception in service client: " + e);
         throw new RuntimeException(e);

@@ -117,10 +117,12 @@ public class ServiceClient {
         return post(URI.create(serviceUrl + "fn/" + fn), data);
     }
 
-    public String callAutoComplete(String prefix, String suffix) throws IOException, InterruptedException {
+    public String callAutoComplete(String prefix, String suffix, String filename) throws IOException,
+            InterruptedException {
         HashMap<Object, Object> data = new HashMap<>();
         data.put("prefix", prefix);
         data.put("suffix", suffix);
+        data.put("filename", filename);
         return post(URI.create(serviceUrl + "autocomplete"), data);
     }
 

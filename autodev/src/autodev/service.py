@@ -2,6 +2,7 @@
 Service implementation to support remote requests from an IDE plugin
 """
 import logging
+import os
 import re
 import sys
 
@@ -119,9 +120,16 @@ class Service:
             print(request.form)
             prefix = request.form.get("prefix")
             suffix = request.form.get("suffix")
-
-            lang_id = "python"  # TODO
-
+            filename = request.form.get("filename")
+            _, ext = os.path.splitext(filename)
+            if ext == ".py":
+                lang_id = "python"
+            elif ext == ".rb":
+                lang_id = "ruby"
+            else:
+                lang_id = ext[1:]
+                log.warning(f"Unknown language for filename '{filename}'")
+            log.info(f"Received completion task for language '{lang_id}'")
             task = CompletionTask(prefix, suffix, lang_id)
             result = self.completion_model.apply(task)
             print(f"Completion:\n{result.completion}")
