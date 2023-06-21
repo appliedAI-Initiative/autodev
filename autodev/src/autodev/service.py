@@ -1,6 +1,7 @@
 """
 Service implementation to support remote requests from an IDE plugin
 """
+import logging
 import re
 import sys
 
@@ -13,6 +14,9 @@ from autodev.code_functions import CodeFunction, ReviewFunction, ImproveCodeFunc
     ImplementTestsFunction, AddDocstringsFunction, PotentialProblemsFunction, InputChecksFunction
 from autodev.llm import LLMType
 from autodev.stream_formatting import StreamHtmlFormatter
+
+
+log = logging.getLogger(__name__)
 
 
 class Service:
@@ -34,6 +38,7 @@ class Service:
         self._add_streaming_code_function("/fn/stream/implement-tests", ImplementTestsFunction(llm), html=False)
         self._add_streaming_code_function("/fn/stream/input-checks", InputChecksFunction(llm), html=False)
 
+        log.info(f"Loading completion model '{completion_model_path}'")
         self.completion_model = CompletionModel(completion_model_factory.create_model(completion_model_path),
             completion_model_factory.create_tokenizer(), device=device)
         self._add_autocomplete("/autocomplete")

@@ -1,3 +1,6 @@
+import os
+import torch
+
 from autodev import logging
 from autodev.autocomplete.model import SantaCoderModelFactory
 from autodev.llm import LLMType
@@ -6,4 +9,10 @@ from autodev.service import Service
 
 if __name__ == '__main__':
     logging.configure()
-    Service(LLMType.OPENAI_CHAT_GPT4, SantaCoderModelFactory(), "bigcode/santacoder", "cuda:0").run()
+    checkpoint = "../remote-santacoder-finetuning/checkpoints/ruby/checkpoint-6000"
+    if os.path.exists(checkpoint):
+        completion_model = checkpoint
+    else:
+        completion_model = "bigcode/santacoder"
+    completion_device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    Service(LLMType.OPENAI_CHAT_GPT4, SantaCoderModelFactory(), completion_model, completion_device).run()
