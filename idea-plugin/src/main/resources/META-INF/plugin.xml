@@ -50,10 +50,10 @@
             id="AcceptTabnineInlineCompletionAction" text="Accept Inline Completion">
       <keyboard-shortcut first-keystroke="TAB" keymap="$default"/>
     </action>
-    <!--no default shortcut for this action, users should configure manually-->
     <action class="com.tabnineCommon.inline.ManualTriggerTabnineInlineCompletionAction"
             id="ManualTriggerTabnineInlineCompletionAction" text="Trigger Inline Completion">
       <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="$Paste"/>
+      <keyboard-shortcut first-keystroke="ctrl I" keymap="$default"/>
     </action>
 
     <action id="de.appliedai.autodev.mainAction" class="de.appliedai.autodev.actions.SwapAction" text="Swap"

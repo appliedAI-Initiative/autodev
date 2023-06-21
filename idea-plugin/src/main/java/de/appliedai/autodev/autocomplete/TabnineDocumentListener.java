@@ -17,6 +17,7 @@ import com.tabnineCommon.general.DependencyContainer;
 import com.tabnineCommon.general.EditorUtils;
 import com.tabnineCommon.inline.*;
 import com.tabnineCommon.prediction.TabNineCompletion;
+import de.appliedai.autodev.AutoDevConfig;
 import de.appliedai.autodev.TempLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,13 +59,15 @@ public class TabnineDocumentListener implements BulkAwareDocumentListener {
       return;
     }
 
-    log.info("Document changed: retrieve and show completion");
-    handler.retrieveAndShowCompletion(
-        editor,
-        offset,
-        lastShownCompletion,
-        event.getNewFragment().toString(),
-        new DefaultCompletionAdjustment());
+    if (AutoDevConfig.autoRequestCompletionsOnDocumentChange) {
+      log.info("Document changed: retrieve and show completion");
+      handler.retrieveAndShowCompletion(
+              editor,
+              offset,
+              lastShownCompletion,
+              event.getNewFragment().toString(),
+              new DefaultCompletionAdjustment());
+    }
   }
 
   private boolean shouldIgnoreChange(

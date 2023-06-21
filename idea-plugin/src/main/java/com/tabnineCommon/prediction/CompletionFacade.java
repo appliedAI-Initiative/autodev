@@ -16,6 +16,7 @@ import com.tabnineCommon.binary.requests.autocomplete.AutocompleteResponse;
 import com.tabnineCommon.binary.requests.autocomplete.ResultEntry;
 import com.tabnineCommon.capabilities.SuggestionsModeService;
 import com.tabnineCommon.inline.CompletionAdjustment;
+import de.appliedai.autodev.AutoDevConfig;
 import de.appliedai.autodev.ServiceClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,12 +26,10 @@ import static com.tabnineCommon.general.StaticConfig.*;
 public class CompletionFacade {
   private final SuggestionsModeService suggestionsModeService;
   private final ServiceClient serviceClient;
-  private final boolean useDummyResponse;
 
   public CompletionFacade(BinaryRequestFacade b, SuggestionsModeService suggestionsModeService) {
     this.suggestionsModeService = suggestionsModeService;
     this.serviceClient = new ServiceClient();
-    this.useDummyResponse = false;
   }
 
   @Nullable
@@ -111,7 +110,7 @@ public class CompletionFacade {
     }
 
     AutocompleteResponse autocompleteResponse;
-    if (useDummyResponse) {
+    if (AutoDevConfig.useDummyCompletions) {
       autocompleteResponse = createAutocompleteResponse("foobar(", ")");
     }
     else {
