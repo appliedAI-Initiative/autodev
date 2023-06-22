@@ -22,6 +22,7 @@ import com.tabnineCommon.intellij.completions.CompletionUtils;
 import com.tabnineCommon.prediction.CompletionFacade;
 import com.tabnineCommon.prediction.TabNineCompletion;
 import de.appliedai.autodev.AutoDevConfig;
+import de.appliedai.autodev.TaskLogger;
 import de.appliedai.autodev.TempLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +48,7 @@ public class InlineCompletionHandler {
   private Future<?> lastDebounceRenderTask = null;
   private Future<?> lastFetchAndRenderTask = null;
   private Future<?> lastFetchInBackgroundTask = null;
+  private long taskId = 1;
 
   private final TempLogger log = TempLogger.getInstance(InlineCompletionHandler.class);
 
@@ -66,6 +68,7 @@ public class InlineCompletionHandler {
       @NotNull String userInput,
       @NotNull CompletionAdjustment completionAdjustment,
       boolean isManualRequest) {
+    var log = new TaskLogger(this.log, String.format("Task %d - ", taskId++));
     Integer tabSize = GraphicsUtilsKt.getTabSize(editor);
 
     log.info("Cancelling tasks");
@@ -79,7 +82,7 @@ public class InlineCompletionHandler {
     if (!cachedCompletions.isEmpty()) {
       var firstCompletion = cachedCompletions.get(0);
       log.info(String.format("Showing cached completions: userInput='%s', suffix='%s'", userInput, firstCompletion.getSuffix()));
-      renderCachedCompletions(editor, offset, tabSize, cachedCompletions, completionAdjustment);
+      renderCachedCompletions(editor, offset, tabSize, cachedCompletions, completionAdjustment, log);
       return;
     }
 
@@ -107,7 +110,8 @@ public class InlineCompletionHandler {
                                 tabSize,
                                 getCurrentEditorOffset(editor, userInput),
                                 editor.getDocument().getModificationStamp(),
-                                completionAdjustment);
+                                completionAdjustment,
+                                log);
                       });
     }
     else {
@@ -116,15 +120,16 @@ public class InlineCompletionHandler {
   }
 
   private void renderCachedCompletions(
-      @NotNull Editor editor,
-      int offset,
-      Integer tabSize,
-      @NotNull List<TabNineCompletion> cachedCompletions,
-      @NotNull CompletionAdjustment completionAdjustment) {
+          @NotNull Editor editor,
+          int offset,
+          Integer tabSize,
+          @NotNull List<TabNineCompletion> cachedCompletions,
+          @NotNull CompletionAdjustment completionAdjustment, TaskLogger log) {
     showInlineCompletion(editor, cachedCompletions, offset, null);
+    log.info("Assigning lastFetchInBackgroundTask");
     lastFetchInBackgroundTask =
         executeThread(
-            () -> retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment));
+            () -> retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment, log));
   }
 
   private int getCurrentEditorOffset(@NotNull Editor editor, @NotNull String userInput) {
@@ -133,11 +138,13 @@ public class InlineCompletionHandler {
   }
 
   private void renderNewCompletions(
-      @NotNull Editor editor,
-      Integer tabSize,
-      int offset,
-      long modificationStamp,
-      @NotNull CompletionAdjustment completionAdjustment) {
+          @NotNull Editor editor,
+          Integer tabSize,
+          int offset,
+          long modificationStamp,
+          @NotNull CompletionAdjustment completionAdjustment,
+          TaskLogger log) {
+    log.info("Assigning lastFetchAndRenderTask");
     lastFetchAndRenderTask =
         executeThread(
             () -> {
@@ -145,9 +152,9 @@ public class InlineCompletionHandler {
               CompletionTracker.updateLastCompletionRequestTime(editor);
               log.info("retrieve inline completion");
               List<TabNineCompletion> beforeDebounceCompletions =
-                  retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment);
+                  retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment, log);
               long debounceTime = CompletionTracker.calcDebounceTime(editor, completionAdjustment);
-              log.info("debounce time: " + debounceTime);
+              log.info("Debounce time: " + debounceTime);
               if (debounceTime == 0) {
                 log.info("No debounce: rerenderCompletion");
                 rerenderCompletion(
@@ -155,52 +162,44 @@ public class InlineCompletionHandler {
                     beforeDebounceCompletions,
                     offset,
                     modificationStamp,
-                    completionAdjustment);
-                return;
+                    completionAdjustment, log);
               }
-
-              log.info("refetchCompletionsAfterDebounce");
-              refetchCompletionsAfterDebounce(
-                  editor, tabSize, offset, modificationStamp, completionAdjustment, debounceTime);
+              else {
+                log.info("Assigning lastDebounceRenderTask");
+                lastDebounceRenderTask =
+                        executeThread(
+                                () -> {
+                                  log.info("After debounce");
+                                  List<TabNineCompletion> completions =
+                                          retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment, log);
+                                  rerenderCompletion(
+                                          editor, completions, offset, modificationStamp, completionAdjustment, log);
+                                },
+                                debounceTime,
+                                TimeUnit.MILLISECONDS);
+              }
             });
   }
 
-  private void refetchCompletionsAfterDebounce(
-      @NotNull Editor editor,
-      Integer tabSize,
-      int offset,
-      long modificationStamp,
-      @NotNull CompletionAdjustment completionAdjustment,
-      long debounceTime) {
-    lastDebounceRenderTask =
-        executeThread(
-            () -> {
-              log.info("After debounce");
-              List<TabNineCompletion> completions =
-                  retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment);
-              rerenderCompletion(
-                  editor, completions, offset, modificationStamp, completionAdjustment);
-            },
-            debounceTime,
-            TimeUnit.MILLISECONDS);
-  }
-
   private void rerenderCompletion(
-      @NotNull Editor editor,
-      List<TabNineCompletion> completions,
-      int offset,
-      long modificationStamp,
-      @NotNull CompletionAdjustment completionAdjustment) {
+          @NotNull Editor editor,
+          List<TabNineCompletion> completions,
+          int offset,
+          long modificationStamp,
+          @NotNull CompletionAdjustment completionAdjustment,
+          TaskLogger log) {
     log.info("rerenderCompletion");
     ApplicationManager.getApplication()
         .invokeLater(
             () -> {
               if (shouldCancelRendering(editor, modificationStamp, offset)) {
+                log.info("Rendering cancelled");
                 return;
               }
               if (shouldRemovePopupCompletions(completionAdjustment)) {
                 completions.removeIf(completion -> !completion.isSnippet());
               }
+              log.info("Showing inline completions");
               showInlineCompletion(
                   editor,
                   completions,
@@ -233,20 +232,25 @@ public class InlineCompletionHandler {
       @NotNull Editor editor,
       int offset,
       Integer tabSize,
-      @NotNull CompletionAdjustment completionAdjustment) {
-    log.info("retrieveInlineCompletion");
+      @NotNull CompletionAdjustment completionAdjustment,
+      TaskLogger log) {
+    log.info("completionFacade.retrieveCompletions");
     AutocompleteResponse completionsResponse =
         this.completionFacade.retrieveCompletions(editor, offset, tabSize, completionAdjustment);
 
     if (completionsResponse == null || completionsResponse.results.length == 0) {
+      log.info("Completions response is empty");
       return Collections.emptyList();
     }
-
-    return createCompletions(
-        completionsResponse,
-        editor.getDocument(),
-        offset,
-        completionAdjustment.getSuggestionTrigger());
+    else {
+      var list = createCompletions(
+              completionsResponse,
+              editor.getDocument(),
+              offset,
+              completionAdjustment.getSuggestionTrigger());
+      log.info("Completions received");
+      return list;
+    }
   }
 
   private void showInlineCompletion(
@@ -310,7 +314,6 @@ public class InlineCompletionHandler {
       @NotNull Document document,
       int offset,
       SuggestionTrigger suggestionTrigger) {
-    log.info("createCompletions");
     return IntStream.range(0, completions.results.length)
         .mapToObj(
             index ->
