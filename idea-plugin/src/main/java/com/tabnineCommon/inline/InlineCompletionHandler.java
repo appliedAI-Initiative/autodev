@@ -22,6 +22,7 @@ import com.tabnineCommon.intellij.completions.CompletionUtils;
 import com.tabnineCommon.prediction.CompletionFacade;
 import com.tabnineCommon.prediction.TabNineCompletion;
 import de.appliedai.autodev.AutoDevConfig;
+import de.appliedai.autodev.LatestTaskInWindowExecutor;
 import de.appliedai.autodev.TaskLogger;
 import de.appliedai.autodev.TempLogger;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +50,7 @@ public class InlineCompletionHandler {
   private Future<?> lastFetchAndRenderTask = null;
   private Future<?> lastFetchInBackgroundTask = null;
   private long taskId = 1;
+  private LatestTaskInWindowExecutor documentUpdateTaskExecutor = new LatestTaskInWindowExecutor(500);
 
   private final TempLogger log = TempLogger.getInstance(InlineCompletionHandler.class);
 
@@ -101,18 +103,28 @@ public class InlineCompletionHandler {
 
     boolean retrieveNewCompletions = AutoDevConfig.autoRequestCompletionsOnDocumentChange || isManualRequest;
     if (retrieveNewCompletions) {
-      ApplicationManager.getApplication()
-              .invokeLater(
-                      () -> {
-                        log.info("renderNewCompletions");
-                        renderNewCompletions(
-                                editor,
-                                tabSize,
-                                getCurrentEditorOffset(editor, userInput),
-                                editor.getDocument().getModificationStamp(),
-                                completionAdjustment,
-                                log);
-                      });
+      Runnable renderNewCompletionsTask = () -> {
+        ApplicationManager.getApplication()
+                .invokeLater(
+                        () -> {
+                          log.info("renderNewCompletions");
+                          renderNewCompletions(
+                                  editor,
+                                  tabSize,
+                                  getCurrentEditorOffset(editor, userInput),
+                                  editor.getDocument().getModificationStamp(),
+                                  completionAdjustment,
+                                  log);
+                        });
+      };
+
+      if (isManualRequest)
+        renderNewCompletionsTask.run();
+      else {
+        // For changes due to document edits, make sure that only one (the latest) task in any given time window
+        // will be run to avoid excessive queries
+        documentUpdateTaskExecutor.submitTask(renderNewCompletionsTask, log);
+      }
     }
     else {
       log.info("Not retrieving new completions because auto-retrieval on document change is disabled");
