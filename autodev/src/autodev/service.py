@@ -21,7 +21,8 @@ log = logging.getLogger(__name__)
 
 
 class Service:
-    def __init__(self, llm_type: LLMType, completion_model_factory: ModelFactory, completion_model_path: str, device):
+    def __init__(self, llm_type: LLMType, completion_model_factory: ModelFactory, completion_model_path: str, device,
+            max_completion_tokens=32):
         self.app = Flask("AutoDev")
 
         self.sllm = llm = llm_type.create_streaming_llm()
@@ -41,7 +42,7 @@ class Service:
 
         log.info(f"Loading completion model '{completion_model_path}'")
         self.completion_model = CompletionModel(completion_model_factory.create_model(completion_model_path),
-            completion_model_factory.create_tokenizer(), device=device)
+            completion_model_factory.create_tokenizer(), device=device, max_new_tokens=max_completion_tokens)
         self._add_autocomplete("/autocomplete")
 
     @staticmethod
