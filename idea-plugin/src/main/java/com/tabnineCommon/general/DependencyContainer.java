@@ -7,7 +7,7 @@ import com.tabnineCommon.binary.BinaryRun;
 import com.tabnineCommon.binary.fetch.*;
 import com.tabnineCommon.capabilities.SuggestionsModeService;
 import com.tabnineCommon.hover.HoverUpdater;
-import com.tabnineCommon.inline.InlineCompletionHandler;
+import de.appliedai.autodev.autocomplete.InlineCompletionHandler;
 import com.tabnineCommon.inline.TabnineInlineLookupListener;
 import com.tabnineCommon.prediction.CompletionFacade;
 import com.tabnineCommon.selections.CompletionPreviewListener;

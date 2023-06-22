@@ -1,4 +1,4 @@
-package com.tabnineCommon.inline;
+package de.appliedai.autodev.autocomplete;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -17,6 +17,7 @@ import com.tabnineCommon.general.CompletionKind;
 import com.tabnineCommon.general.CompletionsEventSender;
 import com.tabnineCommon.general.DependencyContainer;
 import com.tabnineCommon.general.SuggestionTrigger;
+import com.tabnineCommon.inline.*;
 import com.tabnineCommon.inline.render.GraphicsUtilsKt;
 import com.tabnineCommon.intellij.completions.CompletionUtils;
 import com.tabnineCommon.prediction.CompletionFacade;

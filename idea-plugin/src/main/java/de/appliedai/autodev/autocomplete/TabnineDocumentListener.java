@@ -17,7 +17,6 @@ import com.tabnineCommon.general.DependencyContainer;
 import com.tabnineCommon.general.EditorUtils;
 import com.tabnineCommon.inline.*;
 import com.tabnineCommon.prediction.TabNineCompletion;
-import de.appliedai.autodev.AutoDevConfig;
 import de.appliedai.autodev.TaskLogger;
 import de.appliedai.autodev.TempLogger;
 import org.jetbrains.annotations.NotNull;
