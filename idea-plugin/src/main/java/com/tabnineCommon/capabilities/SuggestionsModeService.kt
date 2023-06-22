@@ -1,8 +1,9 @@
 package com.tabnineCommon.capabilities
 
+import de.appliedai.autodev.AutoDevConfig
+
 class SuggestionsModeService {
     fun getSuggestionMode(): SuggestionsMode {
-        System.out.println("Called getSuggestionMode")
-        return SuggestionsMode.INLINE;
+        return AutoDevConfig.suggestionsMode;
     }
 }
