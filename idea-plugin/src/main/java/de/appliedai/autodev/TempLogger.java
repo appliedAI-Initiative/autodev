@@ -18,6 +18,10 @@ public class TempLogger {
         log.warn(message);
     }
 
+    public void error(String message) {
+        log.error(message);
+    }
+
     public static TempLogger getInstance(Class<?> cls) {
         return new TempLogger(cls);
     }

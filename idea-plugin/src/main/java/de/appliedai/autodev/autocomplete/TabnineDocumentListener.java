@@ -18,6 +18,7 @@ import com.tabnineCommon.general.EditorUtils;
 import com.tabnineCommon.inline.*;
 import com.tabnineCommon.prediction.TabNineCompletion;
 import de.appliedai.autodev.AutoDevConfig;
+import de.appliedai.autodev.TaskLogger;
 import de.appliedai.autodev.TempLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,10 +36,12 @@ public class TabnineDocumentListener implements BulkAwareDocumentListener {
       DependencyContainer.instanceOfCompletionsEventSender();
 
   private final TempLogger log = TempLogger.getInstance(TabnineDocumentListener.class);
+  private long nextTaskId = 1;
 
   @Override
   public void documentChangedNonBulk(@NotNull DocumentEvent event) {
-    log.info("Document changed: start");
+    TaskLogger log = new TaskLogger(this.log, String.format("OnChange%d - ", nextTaskId++));
+    log.info("Start");
     Document document = event.getDocument();
     Editor editor = getActiveEditor(document);
 
@@ -46,7 +49,7 @@ public class TabnineDocumentListener implements BulkAwareDocumentListener {
       return;
     }
 
-    log.info("Document changed: getting last shown completion");
+    log.info("Getting last shown completion");
     TabNineCompletion lastShownCompletion = CompletionPreview.getCurrentCompletion(editor);
 
     CompletionPreview.clear(editor);
@@ -54,19 +57,20 @@ public class TabnineDocumentListener implements BulkAwareDocumentListener {
     int offset = event.getOffset() + event.getNewLength();
 
     if (shouldIgnoreChange(event, editor, offset, lastShownCompletion)) {
-      log.info("Document changed: ingoring change");
+      log.info("Ignoring change");
       InlineCompletionCache.getInstance().clear(editor);
       return;
     }
 
-    log.info("Document changed: retrieve and show completion");
+    log.info("Calling retrieveAndShowCompletion");
     handler.retrieveAndShowCompletion(
             editor,
             offset,
             lastShownCompletion,
             event.getNewFragment().toString(),
             new DefaultCompletionAdjustment(),
-            false);
+            false,
+            log);
   }
 
   private boolean shouldIgnoreChange(

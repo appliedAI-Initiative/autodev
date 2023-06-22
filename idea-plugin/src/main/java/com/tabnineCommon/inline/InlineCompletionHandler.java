@@ -69,8 +69,8 @@ public class InlineCompletionHandler {
       @Nullable TabNineCompletion lastShownSuggestion,
       @NotNull String userInput,
       @NotNull CompletionAdjustment completionAdjustment,
-      boolean isManualRequest) {
-    var log = new TaskLogger(this.log, String.format("Task %d - ", taskId++));
+      boolean isManualRequest,
+      TaskLogger log) {
     Integer tabSize = GraphicsUtilsKt.getTabSize(editor);
 
     log.info("Cancelling tasks");
@@ -94,7 +94,7 @@ public class InlineCompletionHandler {
           completionAdjustment instanceof LookAheadCompletionAdjustment
               ? SuggestionDroppedReason.ScrollLookAhead
               : SuggestionDroppedReason.UserNotTypedAsSuggested;
-      log.info("Last shown suggestion dropped: reasion=" + reason);
+      log.info("Last shown suggestion dropped: reason=" + reason);
       // if the last rendered suggestion is not null, this means that the user has typed something
       // that doesn't match the previous suggestion - hence the reason is `UserNotTypedAsSuggested`
       // (or `ScrollLookAhead` if the suggestion's source is from look-ahead).

@@ -16,6 +16,10 @@ public class TaskLogger {
         log.info(prefix + message);
     }
 
+    public void error(String message) {
+        log.error(prefix + message);
+    }
+
     public void debug(String message) {
         log.debug(prefix + message);
     }

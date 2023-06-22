@@ -8,6 +8,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.tabnineCommon.capabilities.RenderingMode
 import com.tabnineCommon.general.DependencyContainer
+import de.appliedai.autodev.TaskLogger
+import de.appliedai.autodev.TempLogger
 
 class ManualTriggerTabnineInlineCompletionAction :
         BaseCodeInsightAction(false),
@@ -17,21 +19,21 @@ class ManualTriggerTabnineInlineCompletionAction :
         const val ACTION_ID = "ManualTriggerTabnineInlineCompletionAction"
     }
 
+    private val log = TempLogger(ManualTriggerTabnineInlineCompletionAction::class.java)
+    private var nextTaskId = 1
     private val handler = DependencyContainer.singletonOfInlineCompletionHandler()
     private val completionsEventSender = DependencyContainer.instanceOfCompletionsEventSender()
 
     override fun getHandler(): CodeInsightActionHandler {
         return CodeInsightActionHandler { _: Project?, editor: Editor, _: PsiFile? ->
-            System.out.println("Manual trigger inline: send trigger")
+            val log = TaskLogger(log, String.format("Manual%d - ", nextTaskId++))
             completionsEventSender.sendManualSuggestionTrigger(RenderingMode.INLINE)
-            System.out.println("Manual trigger inline: get current")
             val lastShownCompletion = CompletionPreview.getCurrentCompletion(editor)
-
-            System.out.println("Manual trigger inline: retrieve and show")
             handler.retrieveAndShowCompletion(
                     editor, editor.caretModel.offset, lastShownCompletion, "",
                     DefaultCompletionAdjustment(),
-                    true
+                    true,
+                    log
             )
         }
     }
