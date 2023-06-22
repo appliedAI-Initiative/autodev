@@ -90,14 +90,19 @@ public class InlineCompletionHandler {
     ObjectUtils.doIfNotNull(lastFetchAndRenderTask, task -> task.cancel(false));
     ObjectUtils.doIfNotNull(lastDebounceRenderTask, task -> task.cancel(false));
 
-    log.info("Retrieve adjusted completions");
-    List<TabNineCompletion> cachedCompletions =
-        InlineCompletionCache.getInstance().retrieveAdjustedCompletions(editor, userInput);
-    if (!cachedCompletions.isEmpty()) {
-      var firstCompletion = cachedCompletions.get(0);
-      log.info(String.format("Showing cached completions: userInput='%s', suffix='%s'", userInput, firstCompletion.getSuffix()));
-      renderCachedCompletions(editor, offset, tabSize, cachedCompletions, completionAdjustment, log);
-      return;
+    // NOTE: Retrieving adjusted completions doesn't work for manual requests as the userInput is "" and the prefix
+    // of the stored completion is typically also ""
+    // TODO The root of the problem is probably that the adjusted completions aren't stored (only the original ones are)
+    if (!isManualRequest) {
+      log.info("Retrieve adjusted completions");
+      List<TabNineCompletion> cachedCompletions =
+              InlineCompletionCache.getInstance().retrieveAdjustedCompletions(editor, userInput);
+      if (!cachedCompletions.isEmpty()) {
+        var firstCompletion = cachedCompletions.get(0);
+        log.info(String.format("Showing cached completions: userInput='%s', suffix='%s'", userInput, firstCompletion.getSuffix()));
+        renderCachedCompletions(editor, offset, tabSize, cachedCompletions, completionAdjustment, log);
+        return;
+      }
     }
 
     if (lastShownSuggestion != null) {
@@ -298,6 +303,7 @@ public class InlineCompletionHandler {
       return;
     }
 
+    log.info("Showing completion: " + displayedCompletion.getSuffix());
     if (onCompletionPreviewUpdatedCallback != null) {
       onCompletionPreviewUpdatedCallback.onCompletionPreviewUpdated(displayedCompletion);
     }
