@@ -138,10 +138,14 @@ public class InlineCompletionHandler {
           @NotNull List<TabNineCompletion> cachedCompletions,
           @NotNull CompletionAdjustment completionAdjustment, TaskLogger log) {
     showInlineCompletion(editor, cachedCompletions, offset, null);
+    // NOTE: If we can show cached completions, it seems unnecessary to fetch new completions in the background,
+    // so this is disabled
+    /*
     log.info("Assigning lastFetchInBackgroundTask");
     lastFetchInBackgroundTask =
         executeThread(
             () -> retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment, log));
+    */
   }
 
   private int getCurrentEditorOffset(@NotNull Editor editor, @NotNull String userInput) {
