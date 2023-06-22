@@ -30,7 +30,8 @@ class ManualTriggerTabnineInlineCompletionAction :
             System.out.println("Manual trigger inline: retrieve and show")
             handler.retrieveAndShowCompletion(
                     editor, editor.caretModel.offset, lastShownCompletion, "",
-                    DefaultCompletionAdjustment()
+                    DefaultCompletionAdjustment(),
+                    true
             )
         }
     }

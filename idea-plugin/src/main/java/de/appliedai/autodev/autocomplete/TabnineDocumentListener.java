@@ -59,15 +59,14 @@ public class TabnineDocumentListener implements BulkAwareDocumentListener {
       return;
     }
 
-    if (AutoDevConfig.autoRequestCompletionsOnDocumentChange) {
-      log.info("Document changed: retrieve and show completion");
-      handler.retrieveAndShowCompletion(
-              editor,
-              offset,
-              lastShownCompletion,
-              event.getNewFragment().toString(),
-              new DefaultCompletionAdjustment());
-    }
+    log.info("Document changed: retrieve and show completion");
+    handler.retrieveAndShowCompletion(
+            editor,
+            offset,
+            lastShownCompletion,
+            event.getNewFragment().toString(),
+            new DefaultCompletionAdjustment(),
+            false);
   }
 
   private boolean shouldIgnoreChange(

@@ -21,6 +21,7 @@ import com.tabnineCommon.inline.render.GraphicsUtilsKt;
 import com.tabnineCommon.intellij.completions.CompletionUtils;
 import com.tabnineCommon.prediction.CompletionFacade;
 import com.tabnineCommon.prediction.TabNineCompletion;
+import de.appliedai.autodev.AutoDevConfig;
 import de.appliedai.autodev.TempLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,18 +64,21 @@ public class InlineCompletionHandler {
       int offset,
       @Nullable TabNineCompletion lastShownSuggestion,
       @NotNull String userInput,
-      @NotNull CompletionAdjustment completionAdjustment) {
+      @NotNull CompletionAdjustment completionAdjustment,
+      boolean isManualRequest) {
     Integer tabSize = GraphicsUtilsKt.getTabSize(editor);
 
-    log.info("cancel");
+    log.info("Cancelling tasks");
     ObjectUtils.doIfNotNull(lastFetchInBackgroundTask, task -> task.cancel(false));
     ObjectUtils.doIfNotNull(lastFetchAndRenderTask, task -> task.cancel(false));
     ObjectUtils.doIfNotNull(lastDebounceRenderTask, task -> task.cancel(false));
 
-    log.info("retrieve adjusted completions");
+    log.info("Retrieve adjusted completions");
     List<TabNineCompletion> cachedCompletions =
         InlineCompletionCache.getInstance().retrieveAdjustedCompletions(editor, userInput);
     if (!cachedCompletions.isEmpty()) {
+      var firstCompletion = cachedCompletions.get(0);
+      log.info(String.format("Showing cached completions: userInput='%s', suffix='%s'", userInput, firstCompletion.getSuffix()));
       renderCachedCompletions(editor, offset, tabSize, cachedCompletions, completionAdjustment);
       return;
     }
@@ -85,24 +89,30 @@ public class InlineCompletionHandler {
           completionAdjustment instanceof LookAheadCompletionAdjustment
               ? SuggestionDroppedReason.ScrollLookAhead
               : SuggestionDroppedReason.UserNotTypedAsSuggested;
+      log.info("Last shown suggestion dropped: reasion=" + reason);
       // if the last rendered suggestion is not null, this means that the user has typed something
       // that doesn't match the previous suggestion - hence the reason is `UserNotTypedAsSuggested`
       // (or `ScrollLookAhead` if the suggestion's source is from look-ahead).
       completionsEventSender.sendSuggestionDropped(editor, lastShownSuggestion, reason);
     }
 
-    ApplicationManager.getApplication()
-        .invokeLater(
-            () -> {
-                log.info("renderNewCompletions");
-                renderNewCompletions(
-                    editor,
-                    tabSize,
-                    getCurrentEditorOffset(editor, userInput),
-                    editor.getDocument().getModificationStamp(),
-                    completionAdjustment);
-            });
-
+    boolean retrieveNewCompletions = AutoDevConfig.autoRequestCompletionsOnDocumentChange || isManualRequest;
+    if (retrieveNewCompletions) {
+      ApplicationManager.getApplication()
+              .invokeLater(
+                      () -> {
+                        log.info("renderNewCompletions");
+                        renderNewCompletions(
+                                editor,
+                                tabSize,
+                                getCurrentEditorOffset(editor, userInput),
+                                editor.getDocument().getModificationStamp(),
+                                completionAdjustment);
+                      });
+    }
+    else {
+      log.info("Not retrieving new completions because auto-retrieval on document change is disabled");
+    }
   }
 
   private void renderCachedCompletions(
@@ -224,6 +234,7 @@ public class InlineCompletionHandler {
       int offset,
       Integer tabSize,
       @NotNull CompletionAdjustment completionAdjustment) {
+    log.info("retrieveInlineCompletion");
     AutocompleteResponse completionsResponse =
         this.completionFacade.retrieveCompletions(editor, offset, tabSize, completionAdjustment);
 
@@ -299,6 +310,7 @@ public class InlineCompletionHandler {
       @NotNull Document document,
       int offset,
       SuggestionTrigger suggestionTrigger) {
+    log.info("createCompletions");
     return IntStream.range(0, completions.results.length)
         .mapToObj(
             index ->
