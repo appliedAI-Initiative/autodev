@@ -15,7 +15,10 @@ import com.tabnineCommon.capabilities.SuggestionsModeService;
 import com.tabnineCommon.general.CompletionsEventSender;
 import com.tabnineCommon.general.DependencyContainer;
 import com.tabnineCommon.general.EditorUtils;
-import com.tabnineCommon.inline.*;
+import com.tabnineCommon.inline.CompletionPreview;
+import com.tabnineCommon.inline.CompletionUtils;
+import com.tabnineCommon.inline.DefaultCompletionAdjustment;
+import com.tabnineCommon.inline.InlineCompletionCache;
 import com.tabnineCommon.prediction.TabNineCompletion;
 import de.appliedai.autodev.TaskLogger;
 import de.appliedai.autodev.TempLogger;
@@ -26,10 +29,9 @@ import java.awt.*;
 
 import static com.intellij.openapi.editor.EditorModificationUtil.checkModificationAllowed;
 import static com.tabnineCommon.general.DependencyContainer.instanceOfSuggestionsModeService;
-import static com.tabnineCommon.general.DependencyContainer.singletonOfInlineCompletionHandler;
 
 public class TabnineDocumentListener implements BulkAwareDocumentListener {
-  private final InlineCompletionHandler handler = singletonOfInlineCompletionHandler();
+  private final InlineCompletionHandler handler = InlineCompletionHandler.getInstance();
   private final SuggestionsModeService suggestionsModeService = instanceOfSuggestionsModeService();
   private final CompletionsEventSender completionsEventSender =
       DependencyContainer.instanceOfCompletionsEventSender();

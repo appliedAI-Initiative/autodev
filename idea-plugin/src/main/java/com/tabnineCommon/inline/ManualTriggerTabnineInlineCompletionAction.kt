@@ -10,6 +10,7 @@ import com.tabnineCommon.capabilities.RenderingMode
 import com.tabnineCommon.general.DependencyContainer
 import de.appliedai.autodev.TaskLogger
 import de.appliedai.autodev.TempLogger
+import de.appliedai.autodev.autocomplete.InlineCompletionHandler
 
 class ManualTriggerTabnineInlineCompletionAction :
         BaseCodeInsightAction(false),
@@ -21,7 +22,7 @@ class ManualTriggerTabnineInlineCompletionAction :
 
     private val log = TempLogger(ManualTriggerTabnineInlineCompletionAction::class.java)
     private var nextTaskId = 1
-    private val handler = DependencyContainer.singletonOfInlineCompletionHandler()
+    private val handler = InlineCompletionHandler.getInstance()
     private val completionsEventSender = DependencyContainer.instanceOfCompletionsEventSender()
 
     override fun getHandler(): CodeInsightActionHandler {

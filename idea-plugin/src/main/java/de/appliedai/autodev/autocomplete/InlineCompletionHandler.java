@@ -26,6 +26,7 @@ import de.appliedai.autodev.AutoDevConfig;
 import de.appliedai.autodev.LatestTaskInWindowExecutor;
 import de.appliedai.autodev.TaskLogger;
 import de.appliedai.autodev.TempLogger;
+import org.apache.tools.ant.taskdefs.optional.depend.Depend;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +55,7 @@ public class InlineCompletionHandler {
   private LatestTaskInWindowExecutor documentUpdateTaskExecutor = new LatestTaskInWindowExecutor(500);
 
   private final TempLogger log = TempLogger.getInstance(InlineCompletionHandler.class);
+  private static InlineCompletionHandler instance = null;
 
   public InlineCompletionHandler(
       CompletionFacade completionFacade,
@@ -62,6 +64,15 @@ public class InlineCompletionHandler {
     this.completionFacade = completionFacade;
     this.binaryRequestFacade = binaryRequestFacade;
     this.suggestionsModeService = suggestionsModeService;
+  }
+
+  public static synchronized InlineCompletionHandler getInstance() {
+    if (instance == null) {
+      instance = new InlineCompletionHandler(DependencyContainer.instanceOfCompletionFacade(),
+              DependencyContainer.instanceOfBinaryRequestFacade(),
+              DependencyContainer.instanceOfSuggestionsModeService());
+    }
+    return instance;
   }
 
   public void retrieveAndShowCompletion(
