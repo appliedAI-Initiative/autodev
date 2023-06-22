@@ -132,14 +132,14 @@ public class InlineCompletionHandler {
         executeThread(
             () -> {
               log.info("update last completion request");
-              //TODO CompletionTracker.updateLastCompletionRequestTime(editor);
+              CompletionTracker.updateLastCompletionRequestTime(editor);
               log.info("retrieve inline completion");
               List<TabNineCompletion> beforeDebounceCompletions =
                   retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment);
-              long debounceTime = 0; //TODO CompletionTracker.calcDebounceTime(editor, completionAdjustment);
+              long debounceTime = CompletionTracker.calcDebounceTime(editor, completionAdjustment);
               log.info("debounce time: " + debounceTime);
               if (debounceTime == 0) {
-                log.info("renderCompletion");
+                log.info("No debounce: rerenderCompletion");
                 rerenderCompletion(
                     editor,
                     beforeDebounceCompletions,
@@ -165,6 +165,7 @@ public class InlineCompletionHandler {
     lastDebounceRenderTask =
         executeThread(
             () -> {
+              log.info("After debounce");
               List<TabNineCompletion> completions =
                   retrieveInlineCompletion(editor, offset, tabSize, completionAdjustment);
               rerenderCompletion(
