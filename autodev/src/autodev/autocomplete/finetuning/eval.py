@@ -58,9 +58,12 @@ class ModelPerplexityEvaluation:
             prev_end_loc = 0
             for begin_loc in tqdm(range(0, seq_len, stride)):
                 end_loc = min(begin_loc + max_length, seq_len)
-                trg_len = end_loc - prev_end_loc  # may be different from stride on last loop
+                trg_len = min(stride, end_loc - prev_end_loc)  # may be different from stride on last iteration
                 input_ids = encodings.input_ids[:, begin_loc:end_loc].to(self.device)
                 target_ids = input_ids.clone()
+
+                # Make the loss evaluation all but the last trg_len tokens by setting the target labels to -100.
+                # Models use torch's CrossEntropyLoss with ignore_index=-100 (the default)
                 target_ids[:, :-trg_len] = -100
 
                 with torch.no_grad():
