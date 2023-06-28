@@ -62,8 +62,8 @@ class ModelPerplexityEvaluation:
                 input_ids = encodings.input_ids[:, begin_loc:end_loc].to(self.device)
                 target_ids = input_ids.clone()
 
-                # Make the loss evaluation all but the last trg_len tokens by setting the target labels to -100.
-                # Models use torch's CrossEntropyLoss with ignore_index=-100 (the default)
+                # Make the loss evaluation apply only to the last trg_len tokens by setting the other target labels
+                # to -100 (models use torch's CrossEntropyLoss with ignore_index=-100, the default).
                 target_ids[:, :-trg_len] = -100
 
                 with torch.no_grad():
