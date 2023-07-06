@@ -1,7 +1,7 @@
 import re
 from typing import Union
 
-import torch
+from optimum.onnxruntime import ORTModelForCausalLM
 from peft import PeftModel
 from transformers import PreTrainedModel, pipeline
 
@@ -16,17 +16,17 @@ class CompletionModel:
     re_fim_middle = re.compile(re.escape(TAG_FIM_MIDDLE))
 
     def __init__(self,
-            model: Union[PreTrainedModel, PeftModel],
+            model: Union[PreTrainedModel, PeftModel, ORTModelForCausalLM],
             tokenizer,
             max_new_tokens=256,
-            torch_dtype=torch.bfloat16,
             device="cuda:0"):
         self.model = model
         self.pipe = pipeline("text-generation", model=model, max_new_tokens=max_new_tokens, device=device,
-            torch_dtype=torch_dtype, trust_remote_code=True, tokenizer=tokenizer)
+            trust_remote_code=True, tokenizer=tokenizer)
 
-    def fim_prompt(self, task: CompletionTask) -> str:
-        return f"{self.TAG_FIM_PREFIX}{task.prefix}{self.TAG_FIM_SUFFIX}{task.suffix}{self.TAG_FIM_MIDDLE}"
+    @classmethod
+    def fim_prompt(cls, task: CompletionTask) -> str:
+        return f"{cls.TAG_FIM_PREFIX}{task.prefix}{cls.TAG_FIM_SUFFIX}{task.suffix}{cls.TAG_FIM_MIDDLE}"
 
     @classmethod
     def _extract_completion(cls, s: str, task: CompletionTask) -> str:
