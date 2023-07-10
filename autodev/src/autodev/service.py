@@ -21,11 +21,10 @@ log = logging.getLogger(__name__)
 
 
 class Service:
-    def __init__(self, llm_type: LLMType, completion_model_factory: ModelFactory, completion_model_path: str, device,
-            max_completion_tokens=32):
+    def __init__(self, chat_model_type: LLMType, completion_model: CompletionModel):
         self.app = Flask("AutoDev")
 
-        self.sllm = llm = llm_type.create_streaming_llm()
+        self.sllm = llm = chat_model_type.create_streaming_llm()
         self._add_code_function("/fn/add-docstrings", AddDocstringsFunction(llm))
         self._add_code_function("/fn/potential-problems", PotentialProblemsFunction(llm), html=True)
         self._add_code_function("/fn/review", ReviewFunction(llm), html=True)
@@ -40,9 +39,7 @@ class Service:
         self._add_streaming_code_function("/fn/stream/implement-tests", ImplementTestsFunction(llm), html=False)
         self._add_streaming_code_function("/fn/stream/input-checks", InputChecksFunction(llm), html=False)
 
-        log.info(f"Loading completion model '{completion_model_path}'")
-        self.completion_model = CompletionModel(completion_model_factory.create_model(completion_model_path),
-            completion_model_factory.create_tokenizer(), device=device, max_new_tokens=max_completion_tokens)
+        self.completion_model = completion_model
         self._add_autocomplete("/autocomplete")
 
     @staticmethod
