@@ -12,7 +12,7 @@ import de.appliedai.autodev.util.TaskLogger
 import de.appliedai.autodev.util.TempLogger
 import de.appliedai.autodev.autocomplete.InlineCompletionHandler
 
-class ManualTriggerTabnineInlineCompletionAction :
+class ManualTriggerInlineCompletionAction :
         BaseCodeInsightAction(false),
         DumbAware,
     InlineCompletionAction {
@@ -20,7 +20,7 @@ class ManualTriggerTabnineInlineCompletionAction :
         const val ACTION_ID = "ManualTriggerTabnineInlineCompletionAction"
     }
 
-    private val log = TempLogger(ManualTriggerTabnineInlineCompletionAction::class.java)
+    private val log = TempLogger(ManualTriggerInlineCompletionAction::class.java)
     private var nextTaskId = 1
     private val handler = InlineCompletionHandler.getInstance()
     private val completionsEventSender = DependencyContainer.instanceOfCompletionsEventSender()

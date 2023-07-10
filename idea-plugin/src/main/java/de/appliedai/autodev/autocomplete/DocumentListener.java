@@ -30,13 +30,13 @@ import java.awt.*;
 import static com.intellij.openapi.editor.EditorModificationUtil.checkModificationAllowed;
 import static com.tabnineCommon.general.DependencyContainer.instanceOfSuggestionsModeService;
 
-public class TabnineDocumentListener implements BulkAwareDocumentListener {
+public class DocumentListener implements BulkAwareDocumentListener {
   private final InlineCompletionHandler handler = InlineCompletionHandler.getInstance();
   private final SuggestionsModeService suggestionsModeService = instanceOfSuggestionsModeService();
   private final CompletionsEventSender completionsEventSender =
       DependencyContainer.instanceOfCompletionsEventSender();
 
-  private final TempLogger log = TempLogger.getInstance(TabnineDocumentListener.class);
+  private final TempLogger log = TempLogger.getInstance(DocumentListener.class);
   private long nextTaskId = 1;
 
   @Override

@@ -37,7 +37,7 @@ import java.util.Arrays;
 
 import static com.tabnineCommon.general.StaticConfig.*;
 
-public class TabNineCompletionContributor extends CompletionContributor {
+public class CompletionContributor extends com.intellij.codeInsight.completion.CompletionContributor {
   private final CompletionFacade completionFacade =
       DependencyContainer.instanceOfCompletionFacade();
   private final TabNineLookupListener tabNineLookupListener = instanceOfTabNineLookupListener();
