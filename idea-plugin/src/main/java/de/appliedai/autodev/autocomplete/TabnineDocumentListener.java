@@ -20,8 +20,8 @@ import com.tabnineCommon.inline.CompletionUtils;
 import com.tabnineCommon.inline.DefaultCompletionAdjustment;
 import com.tabnineCommon.inline.InlineCompletionCache;
 import com.tabnineCommon.prediction.TabNineCompletion;
-import de.appliedai.autodev.TaskLogger;
-import de.appliedai.autodev.TempLogger;
+import de.appliedai.autodev.util.TaskLogger;
+import de.appliedai.autodev.util.TempLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

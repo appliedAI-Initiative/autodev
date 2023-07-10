@@ -1,6 +1,7 @@
-package de.appliedai.autodev;
+package de.appliedai.autodev.util;
 
 import com.intellij.util.concurrency.AppExecutorUtil;
+import de.appliedai.autodev.util.TaskLogger;
 
 import java.util.concurrent.TimeUnit;
 

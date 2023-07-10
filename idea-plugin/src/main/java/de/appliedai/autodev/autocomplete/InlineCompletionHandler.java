@@ -23,10 +23,9 @@ import com.tabnineCommon.intellij.completions.CompletionUtils;
 import com.tabnineCommon.prediction.CompletionFacade;
 import com.tabnineCommon.prediction.TabNineCompletion;
 import de.appliedai.autodev.AutoDevConfig;
-import de.appliedai.autodev.LatestTaskInWindowExecutor;
-import de.appliedai.autodev.TaskLogger;
-import de.appliedai.autodev.TempLogger;
-import org.apache.tools.ant.taskdefs.optional.depend.Depend;
+import de.appliedai.autodev.util.LatestTaskInWindowExecutor;
+import de.appliedai.autodev.util.TaskLogger;
+import de.appliedai.autodev.util.TempLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

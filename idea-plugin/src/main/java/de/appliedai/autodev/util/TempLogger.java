@@ -1,4 +1,4 @@
-package de.appliedai.autodev;
+package de.appliedai.autodev.util;
 
 
 import com.intellij.openapi.diagnostic.Logger;

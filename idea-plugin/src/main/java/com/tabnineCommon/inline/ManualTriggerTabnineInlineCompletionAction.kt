@@ -8,8 +8,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.tabnineCommon.capabilities.RenderingMode
 import com.tabnineCommon.general.DependencyContainer
-import de.appliedai.autodev.TaskLogger
-import de.appliedai.autodev.TempLogger
+import de.appliedai.autodev.util.TaskLogger
+import de.appliedai.autodev.util.TempLogger
 import de.appliedai.autodev.autocomplete.InlineCompletionHandler
 
 class ManualTriggerTabnineInlineCompletionAction :
