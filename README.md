@@ -9,7 +9,7 @@ This repository contains two projects:
     * optimization of models for inference (including quantization) 
 
   * code-based assistance functions, where an instruction-following model is given a task based on an existing code snippet (e.g. reviewing code, adding comments or input checks, explaining code, etc.)
-  * an inference service, which access to the above functions
+  * an inference service, which provides access to the above functions
   * question answering on document databases (including source code documents)
 * A Java project implementing the **AutoDev IntellIJ IDEA plugin** which provides access to the coding assistance functions within JetBrains IDEs such as IntelliJ IDEA, PyCharm and others (`./idea-plugin`).
 
