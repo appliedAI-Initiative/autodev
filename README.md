@@ -2,53 +2,34 @@
 
 This repository contains two projects:
 
-* The **AutoDev Python project** providing the core functionality (`./autodev`)
-* A Java project implementing the **AutoDev IntellIJ IDEA plugin** which provides access to the coding assistance functions within an IDE (`./idea-plugin`).
+* The **AutoDev Python project** providing the core functionality (`./autodev`), including
+  * auto-completion models (that can suggest completions based on the current editing context)
+    * fine-tuning of completion models to teach them new languages (or to teach them about your libraries, your code style, etc.)
+    * quantitative & qualitative evaluation
+    * optimization of models for inference (including quantization) 
 
-## AutoDev Python Project
+  * code-based assistance functions, where an instruction-following model is given a task based on an existing code snippet (e.g. reviewing code, adding comments or input checks, explaining code, etc.)
+  * an inference service, which access to the above functions
+  * question answering on document databases (including source code documents)
+* A Java project implementing the **AutoDev IntellIJ IDEA plugin** which provides access to the coding assistance functions within JetBrains IDEs such as IntelliJ IDEA, PyCharm and others (`./idea-plugin`).
 
-### Environment
+Please refer to the projects' individual README files for further information.
 
-Use conda to set up your virtual environment:
+## AutoDev in Action
 
-    conda env create -f environment.yml
+### Fine-Tuned Auto-Completion
 
-### Packages
+Generating completions for the Ruby programming language based on a fine-tuned version of bigcode/santacoder, which originally knew only Python, Java and JavaScript:
 
-The `autodev` package provides the following Python modules:
-* `llm` provides **abstractions for large language models** (LLMs).
-  * The high-level abstraction, which provides streaming-based queries, is given by the `StreamingLLM` class.
-  * Instances of `StreamingLLM` can be created via specializations of the `LLMFactory` class.
-  * `LLMType` constitutes a convenient enumeration of the model types considered in concrete factory implementations.
-* `code_functions` contains **code assistant functions** that take code as input and return text/code as output, supporting editor-based
-  actions where the user selects text in the editor and then uses the context menu to invoke an assistant function.
-* `service` implements a **Flask-based service** that provides access to the aforementioned code functions via an HTTP service.
-* `stream_formatting` is concerned with the on-the-fly HTML formatting of streamed responses
-* `document_qa` provides simple **question answering** functionality (based on a static set of documents)
-* further modules (`splitting`, `indexing`, `embedding`) that could prove useful when extending the question answering use case to use fewer non-standard components that are directly provided by the `langchain` library
-* `logging` facilitates logging configuration (as a drop-in replacement for Python's `logging` module)
+![Example: auto-completion](images/auto-completion-ruby.gif "Auto-completion in IntelliJ IDEA")
 
-### Runnable Scripts
+### Assistance Functions Built on Instruction-Following Models
 
-The root folder contains runnable scripts:
-* `run_qa_fireface_manual.py` and `run_qa_sensai.py` implement question answering use cases based on the manual of an audio interface and the [sensAI](http://github.com/jambit/sensAI) library source code respectively.
-* `run_service.py` starts the HTTP service for remote access to coding assistance functions.
+Adding input checks to a function:
 
-Notebooks:
-* `apply_code_functions.ipynb` can be used to apply code functions to the code snippets in `data/code_snippets` using different LLMs.
+![Example: adding input checks](images/add-input-checks.gif "Adding input checks in IntelliJ IDEA")
 
-## AutoDev IntellIJ IDEA Plugin
+Identifying potential problems in a piece of code:
 
-Open the folder `idea-plugin/autodev-plugin` as a project in IntellIJ.
-
-IntelliJ should detect the gradle project and display the run configuration `Run Plugin`.
-Running this configuration will start an IntellIJ instance with the plugin enabled.
-By default, it will query the service at `localhost:5000`.
-
-### Components
-
-* The file `plugin.xml` defines the plugin components that are activated
-* The package `de.appliedai.autodev.actions` contains editor actions (available in the editor context menu)
-* Class `de.appliedai.autodev.ServiceClient` contains the service client implementation, in which the service URL is configured.
-* Class `de.appliedai.autodev.AutoDevToolWindowManager` manages the creation of tool window components/tabs that are displayed in reaction to user queries.
+![Example: identifying potential problems](images/potential-problems.gif "Identifying potential problems of a piece of code in IntelliJ IDEA")
 
