@@ -10,9 +10,13 @@ from .completion_task import CompletionTask, CompletionResult
 
 class CompletionModel:
     DEBUG = False
+
+    # TODO: The tags/tokens below are specific to santacoder and other bigcode models.
+    # To generalise this, we should probably add the tokens to the ModelFactory and pass them on wherever necessary.
     TAG_FIM_PREFIX = "<fim-prefix>"
     TAG_FIM_SUFFIX = "<fim-suffix>"
     TAG_FIM_MIDDLE = "<fim-middle>"
+
     re_fim_middle = re.compile(re.escape(TAG_FIM_MIDDLE))
 
     def __init__(self,

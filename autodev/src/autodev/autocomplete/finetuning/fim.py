@@ -7,6 +7,7 @@ import numpy as np
 @functools.lru_cache(maxsize=None)
 def get_fim_token_ids(tokenizer):
     try:
+        # TODO: This is specific to santacoder's tokenizer; to generalise this, we'll have to specify the tokens explicitly
         _, FIM_PREFIX, FIM_MIDDLE, FIM_SUFFIX, FIM_PAD = tokenizer.special_tokens_map[
             "additional_special_tokens"
         ]
