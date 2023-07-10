@@ -23,3 +23,5 @@ dependencies:
     - optimum[onnxruntime-gpu]==1.9.0
     - jupyter
     - seaborn==0.12.2
+    - mlflow==2.4.2
+    - accelerate==0.20.3
