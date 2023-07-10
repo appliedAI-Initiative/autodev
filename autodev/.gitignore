@@ -166,3 +166,5 @@ cython_debug/
 
 # data folders
 /vectordb
+/results
+/models
