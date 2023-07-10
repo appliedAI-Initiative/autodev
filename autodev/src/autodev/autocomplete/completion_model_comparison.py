@@ -5,10 +5,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 
-from ..completion_model import CompletionModel
-from .completion_report import CompletionsHtmlDocument
-from ..completion_task import CompletionTask
-from ..model import model_id_to_fn, ModelFactory
+from autodev.autocomplete.completion_model import CompletionModel
+from autodev.autocomplete.completion_report import CompletionsHtmlDocument
+from autodev.autocomplete.completion_task import CompletionTask
+from autodev.autocomplete.model import model_id_to_fn, ModelFactory
 
 log = logging.getLogger(__name__)
 

@@ -7,8 +7,8 @@ import torch
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
-from .dataset import load_train_val_datasets
-from ..model import ModelFactory
+from autodev.autocomplete.finetuning.dataset import load_train_val_datasets
+from autodev.autocomplete.model import ModelFactory
 
 log = logging.getLogger(__name__)
 

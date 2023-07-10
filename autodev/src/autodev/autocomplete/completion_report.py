@@ -8,8 +8,8 @@ import logging
 import os
 from pathlib import Path
 
-from ..completion_task import CompletionTask
-from ..model import model_id_from_fn
+from autodev.autocomplete.completion_task import CompletionTask
+from autodev.autocomplete.model import model_id_from_fn
 
 log = logging.getLogger(__name__)
 
