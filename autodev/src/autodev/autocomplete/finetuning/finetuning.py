@@ -47,7 +47,7 @@ class FineTuningConfiguration:
     gradient_checkpointing: bool = True
     seed: int = 0
     num_workers: int = None
-    output_dir: str = "./checkpoints"
+    output_dir: str = "models/checkpoints"
     resume_from_checkpoint: bool = False
     log_freq: int = 1
     eval_freq: int = 1000

@@ -83,7 +83,7 @@ class ModelPerplexityEvaluation:
             ppl = torch.exp(torch.stack(nlls).mean())
             log.info(f"PPL={ppl}")
 
-            model_name = model_path.replace("checkpoints/", "")
+            model_name = model_path.replace("models/checkpoints/", "")
 
             rows.append(dict(model=model_name, ppl=ppl.detach().item()))
 
