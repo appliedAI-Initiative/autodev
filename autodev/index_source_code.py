@@ -8,9 +8,9 @@ from langchain.embeddings.base import Embeddings
 from langchain.text_splitter import MarkdownTextSplitter, RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 
-from autodev.embedding import CachedOpenAIEmbeddings
-from autodev.indexing import FileInfo, load_lc_documents
-from autodev.splitting import PythonAstSplitter
+from autodev.qa.embedding import CachedOpenAIEmbeddings
+from autodev.qa.indexing import FileInfo, load_lc_documents
+from autodev.qa.splitting import PythonAstSplitter
 
 logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
 

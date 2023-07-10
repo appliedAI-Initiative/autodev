@@ -3,7 +3,7 @@ import os
 from langchain.text_splitter import PythonCodeTextSplitter
 
 from autodev import logging
-from autodev.document_qa import PythonDocumentDatabase, UseCase
+from autodev.qa.document_qa import PythonDocumentDatabase, UseCase
 from autodev.llm import LLMType
 
 log = logging.getLogger(__name__)

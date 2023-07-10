@@ -1,4 +1,4 @@
-from autodev.splitting import get_ast_chunks, split_into_semantic_chunks
+from autodev.qa.splitting import get_ast_chunks, split_into_semantic_chunks
 
 module_code = '''
 import somelib

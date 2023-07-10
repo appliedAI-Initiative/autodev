@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from autodev.indexing import FileInfo, scan_directory
+from autodev.qa.indexing import FileInfo, scan_directory
 
 
 class TestIndexing:

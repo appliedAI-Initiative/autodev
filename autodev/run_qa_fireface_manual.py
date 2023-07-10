@@ -1,12 +1,10 @@
-import logging
 import os
 import shutil
-import sys
 import urllib
 
 from langchain.text_splitter import CharacterTextSplitter
 
-from autodev.document_qa import UseCase, SingleTextFileDocumentDatabase
+from autodev.qa.document_qa import UseCase, SingleTextFileDocumentDatabase
 from autodev.llm import LLMType
 from autodev import logging
 
