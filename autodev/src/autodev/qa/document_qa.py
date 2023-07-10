@@ -1,19 +1,15 @@
 """
-Simple question answering based on a (fixed) document database (based on the langchain implementation).
+Abstractions for (fixed) document databases
 """
 import logging
 import os
 from typing import List
 
-from langchain.chains import RetrievalQA
 from langchain.document_loaders import PythonLoader, TextLoader
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.embeddings.base import Embeddings
 from langchain.schema import Document, BaseRetriever
 from langchain.text_splitter import TextSplitter
 from langchain.vectorstores import Chroma
-
-from autodev.llm import LLMType
 
 log = logging.getLogger(__name__)
 
@@ -68,33 +64,3 @@ class VectorDatabase:
 
     def retriever(self) -> BaseRetriever:
         return self.db.as_retriever()
-
-
-class UseCase:
-    """
-    Represents a question answering use case
-    """
-    def __init__(self, llm_type: LLMType, doc_db: DocumentDatabase, splitter: TextSplitter, queries: List[str]):
-        """
-        :param llm_type: An LLMType object, which specifies the type of LLM model to use.
-        :param doc_db: A DocumentDatabase object, which contains the text documents for querying.
-        :param splitter: A TextSplitter object, which is used to split the documents into sub-documents.
-        :param queries: A list of strings, representing example queries that can be executed.
-        """
-        self.llm_type = llm_type
-        self.doc_db = doc_db
-        self.queries = queries
-        self.splitter = splitter
-        self.vector_db = VectorDatabase(doc_db.name, doc_db, splitter, OpenAIEmbeddings())
-        log.info(f"Creating model {llm_type}")
-        llm = llm_type.create_llm()
-        self.qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=self.vector_db.retriever())
-
-    def query(self, q):
-        print(f"\n{q}")
-        answer = self.qa.run(q)
-        print(answer)
-
-    def run_example_queries(self):
-        for q in self.queries:
-            self.query(q)

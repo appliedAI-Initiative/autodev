@@ -4,9 +4,10 @@ import urllib
 
 from langchain.text_splitter import CharacterTextSplitter
 
-from autodev.qa.document_qa import UseCase, SingleTextFileDocumentDatabase
+from autodev.qa.document_qa import SingleTextFileDocumentDatabase
 from autodev.llm import LLMType
 from autodev import logging
+from autodev.qa.qa_use_case import QuestionAnsweringUseCase
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class DocumentDatabaseFirefaceManual(SingleTextFileDocumentDatabase):
         super().__init__("fireface", manual_path)
 
 
-class UseCaseFirefaceManual(UseCase):
+class UseCaseFirefaceManual(QuestionAnsweringUseCase):
     def __init__(self, llm_type: LLMType):
         queries = [
             "What is the impedance of the instrument input?",

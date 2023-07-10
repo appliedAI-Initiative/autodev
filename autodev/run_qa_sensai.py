@@ -3,8 +3,9 @@ import os
 from langchain.text_splitter import PythonCodeTextSplitter
 
 from autodev import logging
-from autodev.qa.document_qa import PythonDocumentDatabase, UseCase
+from autodev.qa.document_qa import PythonDocumentDatabase
 from autodev.llm import LLMType
+from autodev.qa.qa_use_case import QuestionAnsweringUseCase
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class PythonDocumentDatabaseSensai(PythonDocumentDatabase):
         super().__init__("sensai", sensai_src_path)
 
 
-class UseCasePythonSensai(UseCase):
+class UseCasePythonSensai(QuestionAnsweringUseCase):
     def __init__(self, llm_type: LLMType):
         queries = [
             "Give me information about class VectorModel",
