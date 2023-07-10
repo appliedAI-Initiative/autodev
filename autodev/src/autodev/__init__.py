@@ -3,7 +3,8 @@ import warnings
 
 def _patch_transformers():
     """
-    Patches functions from transformers that do not work correctly
+    Patches functions from transformers that do not work correctly, specifically an issue pertaining to the use
+    of streaming: see https://github.com/huggingface/transformers/issues/23552
     """
     from transformers import TextGenerationPipeline, is_tf_available
     import copy
