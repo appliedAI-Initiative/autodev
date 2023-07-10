@@ -2,14 +2,16 @@
 
 This repository contains two projects:
 
-* The **AutoDev Python library** providing the core functionality (`./`)
-* A Java project implementing the **AutoDev IntellIJ IDEA plugin** that provides access to the coding assistance functions within an IDE (`./idea-plugin/autodev-plugin`).
+* The **AutoDev Python project** providing the core functionality (`./autodev`)
+* A Java project implementing the **AutoDev IntellIJ IDEA plugin** which provides access to the coding assistance functions within an IDE (`./idea-plugin`).
 
-## AutoDev Library
+## AutoDev Python Project
 
 ### Environment
 
-Use [poetry](https://python-poetry.org) to set up your virtual environment using a Python 3.10 base.
+Use conda to set up your virtual environment:
+
+    conda env create -f environment.yml
 
 ### Packages
 
@@ -24,7 +26,7 @@ The `autodev` package provides the following Python modules:
 * `stream_formatting` is concerned with the on-the-fly HTML formatting of streamed responses
 * `document_qa` provides simple **question answering** functionality (based on a static set of documents)
 * further modules (`splitting`, `indexing`, `embedding`) that could prove useful when extending the question answering use case to use fewer non-standard components that are directly provided by the `langchain` library
-* `logging` which facilitates logging configuration (as a drop-in replacement for Python's `logging` module)
+* `logging` facilitates logging configuration (as a drop-in replacement for Python's `logging` module)
 
 ### Runnable Scripts
 
