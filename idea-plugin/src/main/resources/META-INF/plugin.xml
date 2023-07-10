@@ -8,14 +8,14 @@
   <name>Autodev</name>
 
   <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-  <vendor email="support@yourcompany.com" url="https://www.yourcompany.com">YourCompany</vendor>
+  <vendor email="info@appliedai.de" url="https://www.appliedai-institute.de">appliedAI Institute</vendor>
 
   <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
        Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
        Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
   <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
+    The AutoDev plugin for inline code completion and code snippet-based assistance functions based on (open)
+    large language models.
   ]]></description>
 
   <!-- Product and plugin compatibility requirements.
