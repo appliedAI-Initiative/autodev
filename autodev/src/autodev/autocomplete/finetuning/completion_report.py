@@ -8,8 +8,8 @@ import logging
 import os
 from pathlib import Path
 
-from completionft.completion_task import CompletionTask
-from completionft.model import model_id_from_fn
+from ..completion_task import CompletionTask
+from ..model import model_id_from_fn
 
 log = logging.getLogger(__name__)
 

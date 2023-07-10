@@ -17,7 +17,7 @@ from transformers import (
 from transformers.modeling_utils import unwrap_model
 from transformers.trainer import TRAINING_ARGS_NAME
 
-from completionft.dataset import load_train_val_datasets, chars_token_ratio, ConstantLengthDataset
+from .dataset import load_train_val_datasets, chars_token_ratio, ConstantLengthDataset
 
 log = logging.getLogger(__name__)
 
