@@ -9,7 +9,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import TextSplitter
 
 from autodev.llm import LLMType
-from .document_qa import DocumentDatabase, VectorDatabase
+from .document_db import DocumentDatabase, VectorDatabase
 
 log = logging.getLogger(__name__)
 

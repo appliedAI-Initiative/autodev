@@ -2,7 +2,7 @@ import logging
 import sys
 
 from autodev.autocomplete.model import SantaCoderModelFactory
-from autodev.autocomplete.preplexity_evaluation import ModelPerplexityEvaluation
+from autodev.autocomplete.perplexity_evaluation import ModelPerplexityEvaluation
 
 log = logging.getLogger(__name__)
 
