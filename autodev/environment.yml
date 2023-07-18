@@ -18,10 +18,10 @@ dependencies:
     - transformers==4.30.2
     - langchain==0.0.171
     - peft==0.3.0
-    - accelerate==0.19.0
+    - accelerate==0.20.3
     - xformers==0.0.19
     - optimum[onnxruntime-gpu]==1.9.0
     - jupyter
     - seaborn==0.12.2
     - mlflow==2.4.2
-    - accelerate==0.20.3
+    - gputil==1.4.0
