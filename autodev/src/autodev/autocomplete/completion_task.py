@@ -1,6 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -21,6 +22,11 @@ class CompletionTask:
         prefix = code_with_todo[:m.start()]
         suffix = code_with_todo[m.end():]
         return cls(prefix, suffix, lang_id)
+
+    @classmethod
+    def from_file(cls, p: Path, lang_id: str):
+        with open(p, "r") as f:
+            return cls.from_code_with_todo_tag(f.read(), lang_id)
 
     def code_with_todo_tag(self) -> str:
         return self.prefix + self.TAG_COMPLETION_PLACEHOLDER + self.suffix
