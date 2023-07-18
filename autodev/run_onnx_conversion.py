@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from autodev import logging
+from autodev.util import logging
 from autodev.autocomplete.model import SantaCoderModelFactory
 from autodev.autocomplete.onnx_conversion import ONNXConversion
 

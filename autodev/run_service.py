@@ -2,9 +2,9 @@ from typing import Literal
 
 import torch
 
-from autodev import logging
+from autodev.util import logging
 from autodev.autocomplete.completion_model import CompletionModel
-from autodev.autocomplete.model import SantaCoderModelFactory, ModelFactory, ModelTransformationBetterTransformer
+from autodev.autocomplete.model import SantaCoderModelFactory, ModelFactory
 from autodev.llm import LLMType
 from autodev.service import Service
 

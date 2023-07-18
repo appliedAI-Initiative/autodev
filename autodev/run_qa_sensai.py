@@ -2,7 +2,7 @@ import os
 
 from langchain.text_splitter import PythonCodeTextSplitter
 
-from autodev import logging
+from autodev.util import logging
 from autodev.qa.document_db import PythonDocumentDatabase
 from autodev.llm import LLMType
 from autodev.qa.qa_use_case import QuestionAnsweringUseCase

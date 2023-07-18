@@ -3,7 +3,7 @@ import os
 from glob import glob
 from typing import Optional
 
-from autodev import logging
+from autodev.util import logging
 from autodev.autocomplete.finetuning import FineTuningConfiguration, CompletionFineTuning
 
 log = logging.getLogger(__name__)

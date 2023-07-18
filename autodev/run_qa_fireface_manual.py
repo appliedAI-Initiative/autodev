@@ -6,7 +6,7 @@ from langchain.text_splitter import CharacterTextSplitter
 
 from autodev.qa.document_db import SingleTextFileDocumentDatabase
 from autodev.llm import LLMType
-from autodev import logging
+from autodev.util import logging
 from autodev.qa.qa_use_case import QuestionAnsweringUseCase
 
 log = logging.getLogger(__name__)
