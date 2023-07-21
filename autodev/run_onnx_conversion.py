@@ -21,7 +21,7 @@ if __name__ == '__main__':
     tokenizer = model_factory.create_tokenizer()
 
     # apply conversion
-    onnx_model_path = Path("models/santacoder_onnx")
-    ONNXConversion().convert(model, tokenizer, onnx_model_path)
+    #ONNXConversion().convert(model, tokenizer, Path("models/santacoder_onnx"))
+    ONNXConversion().convert_santacoder_dual_models(model, tokenizer, Path("models/santacoder_onnx_cached"))
 
     log.info("Done")
