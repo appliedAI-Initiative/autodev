@@ -14,6 +14,11 @@ log = logging.getLogger(__name__)
 
 
 class ModelPerplexityEvaluation:
+    """
+    Supports the quantitative evaluation of completion models by computing the perplexity on test data.
+    The evaluation assumes that the function `load_train_val_datasets` was used with its default parametrisation during training
+    and repeats the same deterministic split in order to obtain the respective test data.
+    """
     def __init__(self, lang_id: str,
             model_factory: ModelFactory,
             model_paths: Sequence[str],

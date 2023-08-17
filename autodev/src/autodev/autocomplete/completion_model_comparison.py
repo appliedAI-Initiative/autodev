@@ -14,6 +14,10 @@ log = logging.getLogger(__name__)
 
 
 class CompletionTaskModelComparison:
+    """
+    Compares completion models by applying them to a set of completion tasks (the ones which are present for the language
+    under data/completion-tasks). The results can be used to evaluate completions qualitatively.
+    """
     def __init__(self,
             lang_id: str,
             model_factory: ModelFactory,
@@ -41,7 +45,11 @@ class CompletionTaskModelComparison:
                 tasks[fn] = CompletionTask.from_code_with_todo_tag(code, lang_id)
         return tasks
 
-    def run(self, save_results=True, save_html_report=True):
+    def run(self, save_results=True, save_html_report=True) -> None:
+        """
+        :param save_results: whether to save individual results in the file system (under results/completion-tasks)
+        :param save_html_report: whether to save an HTML report which contains all the completions side by side
+        """
         tasks = self.completion_tasks
         tokenizer = self.model_factory.create_tokenizer()
 

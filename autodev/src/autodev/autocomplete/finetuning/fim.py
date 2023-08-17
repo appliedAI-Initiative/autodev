@@ -1,3 +1,6 @@
+"""
+The code in this module is based on https://github.com/loubnabnl/santacoder-finetuning
+"""
 import functools
 
 import numpy as np

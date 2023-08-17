@@ -1,3 +1,6 @@
+"""
+The code in this module is partly based on https://github.com/loubnabnl/santacoder-finetuning
+"""
 import logging
 import os
 from dataclasses import dataclass
@@ -69,6 +72,10 @@ class LoggingCallback(PrinterCallback):
 
 
 class LoraCompatibleTrainer(Trainer):
+    """
+    Extends the Trainer class from the transformers library by making changes that add support for LoRA,
+    such that models trained with LoRA correctly save the weights, enabling training processes to be resumed.
+    """
     def _save(self, output_dir: Optional[str] = None, state_dict=None):
         # NOTE: The code below is a copy of the original super-class implementation where the instance check
         # for `PreTrainedModel` is replaced by a duck-typing-style check which simply checks for the
