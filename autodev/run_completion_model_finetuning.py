@@ -81,7 +81,8 @@ def run_finetuning_santacoder_thestack(lang_id,
 if __name__ == '__main__':
     logging.configure()
 
-    run_finetuning_santacoder_thestack("ruby", output_dir="models/ruby-foo")
+    run_finetuning_santacoder_thestack("ruby")
     #run_finetuning_santacoder_thestack("ruby", use_lora=True, lora_r=16, fp16=False, output_dir="models/checkpoints/ruby-lora16-fp32", save_freq=500, eval_freq=1000)
     #run_finetuning_santacoder_thestack("ruby", use_lora=True, lora_r=64, fp16=False, output_dir="models/checkpoints/ruby-lora64-fp32", save_freq=500, eval_freq=1000)
     #run_finetuning_santacoder_thestack("csharp")
+    #run_finetuning_santacoder_thestack("rust")
