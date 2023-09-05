@@ -1,23 +1,20 @@
 from typing import Literal
 
-import torch
-
-from autodev.util import logging
 from autodev.autocomplete.completion_model import CompletionModel
-from autodev.autocomplete.model import SantaCoderModelFactory, ModelFactory
+from autodev.autocomplete.model import SantaCoderModelFactory, BigCodeModelFactory
 from autodev.llm import LLMType
 from autodev.service import Service
-
+from autodev.util import logging
 
 log = logging.getLogger(__name__)
 
 
-def run_service(completion_model_name: Literal["santacoder-ruby", "santacoder", "starcoder"]):
+def run_service(completion_model_name: Literal["santacoder-ruby", "santacoder", "starcoder"], chat_model_llmtype=LLMType.OPENAI_CHAT_GPT4,
+        max_completion_tokens=32):
     # create completion model
-    completion_device = "cuda:0" if torch.cuda.is_available() else "cpu"
     if completion_model_name == "starcoder":
         completion_model_path = "bigcode/starcoder"
-        completion_model_factory = ModelFactory(completion_model_path)
+        completion_model_factory = BigCodeModelFactory(completion_model_path)
     else:
         completion_model_factory = SantaCoderModelFactory()
         if completion_model_name == "santacoder-ruby":
@@ -26,16 +23,17 @@ def run_service(completion_model_name: Literal["santacoder-ruby", "santacoder", 
             completion_model_path = "bigcode/santacoder"
         else:
             raise ValueError(completion_model_name)
-    max_completion_tokens = 32
     log.info(f"Loading completion model '{completion_model_path}'")
-    completion_model = CompletionModel(completion_model_factory.create_model(completion_model_path),
-        completion_model_factory.create_tokenizer(), device=completion_device, max_new_tokens=max_completion_tokens)
+    completion_model = CompletionModel.from_model_factory(completion_model_factory, model_path=completion_model_path,
+        max_tokens=max_completion_tokens)
 
-    Service(LLMType.OPENAI_CHAT_GPT4, completion_model).run()
+    # run service
+    Service(chat_model_llmtype, completion_model).run()
 
 
 if __name__ == '__main__':
     logging.configure()
 
-    run_service("santacoder-ruby")
+    run_service("santacoder")
+    #run_service("santacoder-ruby")
     #run_service("starcoder")

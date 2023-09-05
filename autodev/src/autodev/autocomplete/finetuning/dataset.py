@@ -4,7 +4,7 @@ The code in this module is based on https://github.com/loubnabnl/santacoder-fine
 
 import logging
 import random
-from typing import Tuple
+from typing import Tuple, Optional
 
 import numpy as np
 import torch
@@ -13,6 +13,7 @@ from torch.utils.data import IterableDataset
 from tqdm import tqdm
 
 from . import fim
+from ..fim_config import FIMTokenIds
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ class ConstantLengthDataset(IterableDataset):
             concat_token_id: the identifier of the token with which to connect content from different source files
             tokenizer (Tokenizer): The processor used for proccessing the data.
             dataset (dataset.Dataset): Dataset with text files.
+            fim_tokens: specifies the tokens to use for FIM (fill-in-the-middle)
             infinite (bool): If True the iterator is reset after dataset reaches end else stops.
             seq_length (int): Length of token sequences to return.
             num_of_sequences (int): Number of token sequences to keep in buffer.
@@ -49,6 +51,7 @@ class ConstantLengthDataset(IterableDataset):
         concat_token_id: int,
         tokenizer,
         dataset,
+        fim_token_ids: Optional[FIMTokenIds] = None,
         infinite=False,
         seq_length=1024,
         num_of_sequences=1024,
@@ -69,16 +72,9 @@ class ConstantLengthDataset(IterableDataset):
         self.fim_rate = fim_rate
         self.fim_spm_rate = fim_spm_rate
         self.seed = seed
-
-        (
-            self.suffix_tok_id,
-            self.prefix_tok_id,
-            self.middle_tok_id,
-            self.pad_tok_id,
-        ) = fim.get_fim_token_ids(self.tokenizer)
-        if not self.suffix_tok_id and self.fim_rate > 0:
-            print("FIM is not supported by tokenizer, disabling FIM")
-            self.fim_rate = 0
+        self.fim_token_ids = fim_token_ids
+        if self.fim_token_ids is None and self.fim_rate > 0:
+            raise ValueError("Must provide fim_token_ids when fim_rate > 0")
 
     def __iter__(self):
         iterator = iter(self.dataset)
@@ -117,10 +113,7 @@ class ConstantLengthDataset(IterableDataset):
                     tokenized_input, np_rng = fim.permute(
                         tokenized_input,
                         np_rng,
-                        self.suffix_tok_id,
-                        self.prefix_tok_id,
-                        self.middle_tok_id,
-                        self.pad_tok_id,
+                        self.fim_token_ids,
                         fim_rate=self.fim_rate,
                         fim_spm_rate=self.fim_spm_rate,
                         truncate_or_pad=False,

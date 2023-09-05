@@ -21,6 +21,7 @@ from transformers.modeling_utils import unwrap_model
 from transformers.trainer import TRAINING_ARGS_NAME
 
 from .dataset import load_train_val_datasets, chars_token_ratio, ConstantLengthDataset
+from ..fim_config import FIMTokens
 
 log = logging.getLogger(__name__)
 
@@ -55,12 +56,26 @@ class FineTuningConfiguration:
     log_freq: int = 1
     eval_freq: int = 1000
     save_freq: int = 1000
+    fim_tokens: Optional[FIMTokens] = None
+    """the tokens to use for fill-in-the-middle (FIM); may be None if FIM is not activated (fim_rate=0)"""
     fim_rate: float = 0
+    """the relative frequency with which to apply the fill-in-the-middle (FIM) transform"""
     fim_spm_rate: float = 0
+    """
+    the relative frequency with which, when applying FIM tranform, to apply the SPM (suffix-prefix-middle) variant
+    instead of the regular variant (prefix-suffix-middle)
+    """
     use_lora: bool = False
+    """whether to use low-rank adaptation (LoRA)"""
     lora_r: int = 8
+    """LoRA rank parameter"""
     lora_alpha: int = 8
+    """LoRA alpha parameter"""
     lora_target_modules: Optional[List[str]] = None
+    """
+    The names of the torch modules to which low-rank adaptation is to be applied; if None, try to determine automatically
+    (works for select models only) 
+    """
     lora_dropout = 0.1
 
 
@@ -130,10 +145,12 @@ class CompletionFineTuning:
         chars_per_token = chars_token_ratio(train_data, tokenizer, cfg.data_column)
         log.info(f"The character to token ratio of the dataset is: {chars_per_token:.2f}")
         concat_token_id = tokenizer.eos_token_id if tokenizer.eos_token_id else cfg.eos_token_id
+        fim_token_ids = cfg.fim_tokens.get_token_ids(tokenizer) if cfg.fim_tokens is not None else None
         train_dataset = ConstantLengthDataset(
             concat_token_id,
             tokenizer,
             train_data,
+            fim_token_ids,
             infinite=True,
             seq_length=cfg.seq_length,
             chars_per_token=chars_per_token,
@@ -146,6 +163,7 @@ class CompletionFineTuning:
             concat_token_id,
             tokenizer,
             valid_data,
+            fim_token_ids,
             infinite=False,
             seq_length=cfg.seq_length,
             chars_per_token=chars_per_token,

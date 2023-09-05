@@ -1,5 +1,4 @@
 import logging
-import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Union, Optional
@@ -7,6 +6,8 @@ from typing import Union, Optional
 from optimum.onnxruntime import ORTModelForCausalLM
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer, AutoConfig
+
+from autodev.autocomplete.fim_config import FIMTokens, BigCodeFIMTokens
 
 log = logging.getLogger(__name__)
 
@@ -44,12 +45,14 @@ class ModelTransformationBetterTransformer(ModelTransformation):
         from optimum.bettertransformer import BetterTransformer
         return BetterTransformer.transform(model)
 
+
 TModel = Union[PreTrainedModel, PeftModel, ORTModelForCausalLM]
 
 
 class ModelFactory:
-    def __init__(self, base_model_id: str, transformation: Optional[ModelTransformation] = None):
+    def __init__(self, base_model_id: str, fim_tokens: FIMTokens, transformation: Optional[ModelTransformation] = None):
         self.base_model_id = base_model_id
+        self.fim_tokens = fim_tokens
         self.transformation = transformation
 
     def create_tokenizer(self) -> PreTrainedTokenizer:
@@ -136,9 +139,11 @@ class ModelFactory:
             return None
 
 
-class SantaCoderModelFactory(ModelFactory):
+class BigCodeModelFactory(ModelFactory):
+    def __init__(self, base_model_id: str):
+        super().__init__(base_model_id, fim_tokens=BigCodeFIMTokens())
+
+
+class SantaCoderModelFactory(BigCodeModelFactory):
     def __init__(self):
         super().__init__(base_model_id="bigcode/santacoder")
-
-
-

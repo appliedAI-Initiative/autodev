@@ -63,7 +63,7 @@ class CompletionTaskModelComparison:
 
             log.info(f"Loading model {model_id}")
             model = self.model_factory.create_model(model_id)
-            completion_model = CompletionModel(model, tokenizer, device=self.device)
+            completion_model = CompletionModel(model, tokenizer, self.model_factory.fim_tokens, device=self.device)
 
             for task_name, task in tasks.items():
                 ext = os.path.splitext(task_name)[1]

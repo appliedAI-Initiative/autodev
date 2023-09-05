@@ -1,45 +1,55 @@
 import re
 from typing import Union
 
+import torch
 from optimum.onnxruntime import ORTModelForCausalLM
 from peft import PeftModel
 from transformers import PreTrainedModel, pipeline
 
 from .completion_task import CompletionTask, CompletionResult
+from .fim_config import FIMTokens
+from .model import ModelFactory
+
+
+def fim_prompt(task: CompletionTask, fim_tokens: FIMTokens) -> str:
+    return f"{fim_tokens.prefix_token}{task.prefix}{fim_tokens.suffix_token}{task.suffix}{fim_tokens.middle_token}"
 
 
 class CompletionModel:
     DEBUG = False
 
-    # TODO: The tags/tokens below are specific to santacoder and other bigcode models.
-    # To generalise this, we should probably add the tokens to the ModelFactory and pass them on wherever necessary.
-    TAG_FIM_PREFIX = "<fim-prefix>"
-    TAG_FIM_SUFFIX = "<fim-suffix>"
-    TAG_FIM_MIDDLE = "<fim-middle>"
-
-    re_fim_middle = re.compile(re.escape(TAG_FIM_MIDDLE))
-
     def __init__(self,
             model: Union[PreTrainedModel, PeftModel, ORTModelForCausalLM],
             tokenizer,
+            fim_tokens: FIMTokens,
             max_new_tokens=256,
             device="cuda:0"):
         self.model = model
+        self.fim_tokens = fim_tokens
         self.pipe = pipeline("text-generation", model=model, max_new_tokens=max_new_tokens, device=device,
             trust_remote_code=True, tokenizer=tokenizer)
+        self.re_fim_middle = re.compile(re.escape(fim_tokens.middle_token))
 
     @classmethod
-    def fim_prompt(cls, task: CompletionTask) -> str:
-        return f"{cls.TAG_FIM_PREFIX}{task.prefix}{cls.TAG_FIM_SUFFIX}{task.suffix}{cls.TAG_FIM_MIDDLE}"
+    def from_model_factory(cls, model_factory: ModelFactory, model_path=None, max_tokens=256, device=None) -> "CompletionModel":
+        if device is None:
+            device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        return CompletionModel(model_factory.create_model(model_path),
+            model_factory.create_tokenizer(),
+            model_factory.fim_tokens,
+            device=device,
+            max_new_tokens=max_tokens)
 
-    @classmethod
-    def _extract_completion(cls, s: str, task: CompletionTask) -> str:
-        if cls.DEBUG:
+    def fim_prompt(self, task: CompletionTask) -> str:
+        return fim_prompt(task, self.fim_tokens)
+
+    def _extract_completion(self, s: str, task: CompletionTask) -> str:
+        if self.DEBUG:
             import pickle
             with open("completion.pkl", "wb") as f:
                 pickle.dump({"task": task, "s": s}, f)
 
-        m = cls.re_fim_middle.search(s)
+        m = self.re_fim_middle.search(s)
         if not m:
             return ""
         completion = s[m.end():]

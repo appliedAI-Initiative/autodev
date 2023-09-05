@@ -1,8 +1,13 @@
+"""
+Performs fine-tuning of an auto-completion model, teaching the model a new language
+"""
+
 import multiprocessing
 import os
 from glob import glob
 from typing import Optional
 
+from autodev.autocomplete.fim_config import BigCodeFIMTokens
 from autodev.util import logging
 from autodev.autocomplete.finetuning import FineTuningConfiguration, CompletionFineTuning
 
@@ -15,7 +20,7 @@ def run_finetuning_santacoder_thestack(lang_id,
         save_freq=500,
         log_freq=1,
         fim_rate=0.5,
-        fim_spm_rate=0.5,
+        fim_spm_rate=0.0,
         resume_from_checkpoint: Optional[bool] = None,
         use_lora=False,
         lora_r=32,
@@ -65,6 +70,7 @@ def run_finetuning_santacoder_thestack(lang_id,
         save_freq=save_freq,
         log_freq=log_freq,
         num_workers=multiprocessing.cpu_count(),
+        fim_tokens=BigCodeFIMTokens(),
         fim_rate=fim_rate,
         fim_spm_rate=fim_spm_rate,
         output_dir=output_dir,
